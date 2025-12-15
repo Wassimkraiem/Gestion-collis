@@ -1,0 +1,376 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { ColisFormData, Colis } from '@/types/colissimo';
+
+interface ColisFormProps {
+  colis?: Colis | null;
+  onSubmit: (data: ColisFormData) => Promise<void>;
+  onCancel: () => void;
+}
+
+const GOUVERNORATS = [
+  'Tunis', 'Ariana', 'Ben Arous', 'Manouba', 'Nabeul', 'Zaghouan', 'Bizerte',
+  'Béja', 'Jendouba', 'Kef', 'Siliana', 'Kairouan', 'Kasserine', 'Sidi Bouzid',
+  'Sousse', 'Monastir', 'Mahdia', 'Sfax', 'Gafsa', 'Tozeur', 'Kebili',
+  'Gabès', 'Medenine', 'Tataouine'
+];
+
+export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps) {
+  const [formData, setFormData] = useState<ColisFormData>({
+    reference: '',
+    client: '',
+    adresse: '',
+    ville: '',
+    gouvernorat: 'Tunis',
+    tel1: '',
+    tel2: '',
+    designation: '',
+    prix: 0,
+    nb_pieces: 1,
+    type: 'VO',
+    commentaire: '',
+    echange: 0,
+    cod: 0,
+    poids: 0
+  });
+  
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (colis) {
+      setFormData({
+        reference: colis.reference || '',
+        client: colis.client || '',
+        adresse: colis.adresse || '',
+        ville: colis.ville || '',
+        gouvernorat: colis.gouvernorat || 'Tunis',
+        tel1: colis.tel1 || '',
+        tel2: colis.tel2 || '',
+        designation: colis.designation || '',
+        prix: colis.prix || 0,
+        nb_pieces: colis.nb_pieces || 1,
+        type: colis.type || 'VO',
+        commentaire: colis.commentaire || '',
+        echange: colis.echange || 0,
+        cod: colis.cod || 0,
+        poids: colis.poids || 0
+      });
+    }
+  }, [colis]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 card p-8 animate-scaleIn">
+      <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-100">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold gradient-text">
+          {colis ? 'Modifier Colis' : 'Ajouter Nouveau Colis'}
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Reference */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Référence
+          </label>
+          <input
+            type="text"
+            name="reference"
+            value={formData.reference}
+            onChange={handleChange}
+            className="input"
+            placeholder="Ex: REF-2024-001 (Optionnel)"
+          />
+        </div>
+
+        {/* Client */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Client *
+          </label>
+          <input
+            type="text"
+            name="client"
+            value={formData.client}
+            onChange={handleChange}
+            required
+            className="input"
+            placeholder="Nom complet du client"
+          />
+        </div>
+
+        {/* Adresse */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Adresse *
+          </label>
+          <input
+            type="text"
+            name="adresse"
+            value={formData.adresse}
+            onChange={handleChange}
+            required
+            className="input"
+            placeholder="Adresse complète de livraison"
+          />
+        </div>
+
+        {/* Gouvernorat */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Gouvernorat *
+          </label>
+          <select
+            name="gouvernorat"
+            value={formData.gouvernorat}
+            onChange={handleChange}
+            required
+            className="input cursor-pointer"
+          >
+            {GOUVERNORATS.map(gov => (
+              <option key={gov} value={gov}>{gov}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Ville */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Ville *
+          </label>
+          <input
+            type="text"
+            name="ville"
+            value={formData.ville}
+            onChange={handleChange}
+            required
+            className="input"
+            placeholder="Nom de la ville"
+          />
+        </div>
+
+        {/* Tel1 */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Téléphone 1 *
+          </label>
+          <input
+            type="tel"
+            name="tel1"
+            value={formData.tel1}
+            onChange={handleChange}
+            required
+            className="input"
+            placeholder="Ex: 22123456"
+          />
+        </div>
+
+        {/* Tel2 */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Téléphone 2
+          </label>
+          <input
+            type="tel"
+            name="tel2"
+            value={formData.tel2}
+            onChange={handleChange}
+            className="input"
+            placeholder="Optionnel"
+          />
+        </div>
+
+        {/* Designation */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Désignation *
+          </label>
+          <input
+            type="text"
+            name="designation"
+            value={formData.designation}
+            onChange={handleChange}
+            required
+            className="input"
+            placeholder="Description des articles"
+          />
+        </div>
+
+        {/* Prix */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Prix (TND) *
+          </label>
+          <input
+            type="number"
+            name="prix"
+            value={formData.prix}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            required
+            className="input"
+            placeholder="0.00"
+          />
+        </div>
+
+        {/* Nombre de pieces */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Nombre de Pièces *
+          </label>
+          <input
+            type="number"
+            name="nb_pieces"
+            value={formData.nb_pieces}
+            onChange={handleChange}
+            min="1"
+            required
+            className="input"
+            placeholder="1"
+          />
+        </div>
+
+        {/* Type */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Type *
+          </label>
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            className="input cursor-pointer"
+          >
+            <option value="VO">📦 VO - Vente en ligne</option>
+            <option value="EC">🔄 EC - Échange</option>
+            <option value="DO">📄 DO - Document</option>
+          </select>
+        </div>
+
+        {/* Echange */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Échange
+          </label>
+          <select
+            name="echange"
+            value={formData.echange}
+            onChange={handleChange}
+            className="input cursor-pointer"
+          >
+            <option value={0}>❌ Non</option>
+            <option value={1}>✅ Oui</option>
+          </select>
+        </div>
+
+        {/* COD */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            COD (TND)
+          </label>
+          <input
+            type="number"
+            name="cod"
+            value={formData.cod}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            className="input"
+            placeholder="0.00"
+          />
+        </div>
+
+        {/* Poids */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Poids (kg)
+          </label>
+          <input
+            type="number"
+            name="poids"
+            value={formData.poids}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            className="input"
+            placeholder="0.00"
+          />
+        </div>
+
+        {/* Commentaire */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Commentaire
+          </label>
+          <textarea
+            name="commentaire"
+            value={formData.commentaire}
+            onChange={handleChange}
+            rows={3}
+            className="input resize-none"
+            placeholder="Notes supplémentaires..."
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-3 justify-end pt-4 border-t-2 border-gray-100">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="btn-secondary"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary flex items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+              <span>Chargement...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{colis ? 'Modifier' : 'Ajouter'}</span>
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
