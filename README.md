@@ -48,7 +48,10 @@ Create a `.env.local` file in the root directory:
 ```env
 COLISSIMO_USERNAME=your_username
 COLISSIMO_PASSWORD=your_password
-COLISSIMO_WSDL_URL=http://delivery.colissimo.com.tn/wsColissimoGo/wsColissimoGo.asmx?wsdl
+COLISSIMO_WSDL_URL=your_wsdl_url
+
+NEXT_PUBLIC_AUTH_USERNAME=your_auth_username
+NEXT_PUBLIC_AUTH_PASSWORD=your_auth_password
 ```
 
 4. Run the development server:

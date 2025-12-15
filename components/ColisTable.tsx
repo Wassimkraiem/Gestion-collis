@@ -1,16 +1,17 @@
 'use client';
 
 import { Colis } from '@/types/colissimo';
-import { Pencil, Trash2, Eye } from 'lucide-react';
+import { Pencil, Trash2, Eye, Truck } from 'lucide-react';
 
 interface ColisTableProps {
   colisList: Colis[];
   onEdit: (colis: Colis) => void;
   onDelete: (colis: Colis) => void;
   onView: (colis: Colis) => void;
+  onViewDeliveryDetails?: (colis: Colis) => void;
 }
 
-export default function ColisTable({ colisList, onEdit, onDelete, onView }: ColisTableProps) {
+export default function ColisTable({ colisList, onEdit, onDelete, onView, onViewDeliveryDetails }: ColisTableProps) {
   // Safety check: ensure colisList is an array
   const safeColisList = Array.isArray(colisList) ? colisList : [];
   
@@ -121,6 +122,15 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView }: Coli
                     >
                       <Eye size={18} />
                     </button>
+                    {(colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') && onViewDeliveryDetails && (
+                      <button
+                        onClick={() => onViewDeliveryDetails(colis)}
+                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                        title="Détails de livraison"
+                      >
+                        <Truck size={18} />
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(colis)}
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"

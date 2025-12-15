@@ -7,7 +7,11 @@ export async function getSOAPClient() {
     return cachedClient;
   }
 
-  const url = process.env.COLISSIMO_WSDL_URL || 'http://delivery.colissimo.com.tn/wsColissimoGo/wsColissimoGo.asmx?wsdl';
+  const url = process.env.COLISSIMO_WSDL_URL;
+  
+  if (!url) {
+    throw new Error('COLISSIMO_WSDL_URL environment variable is not set');
+  }
   
   try {
     const client = await soap.createClientAsync(url);
