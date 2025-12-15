@@ -4,3 +4,4 @@ export default function AnomaliePage() {
   return <ColisListView statusFilter="Anomalie de Livraison" />;
 }
 
+

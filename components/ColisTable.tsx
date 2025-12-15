@@ -1,7 +1,7 @@
 'use client';
 
 import { Colis } from '@/types/colissimo';
-import { Pencil, Trash2, Eye, Truck } from 'lucide-react';
+import { Pencil, Trash2, Eye, Truck, Printer } from 'lucide-react';
 
 interface ColisTableProps {
   colisList: Colis[];
@@ -9,9 +9,10 @@ interface ColisTableProps {
   onDelete: (colis: Colis) => void;
   onView: (colis: Colis) => void;
   onViewDeliveryDetails?: (colis: Colis) => void;
+  onPrint: (colis: Colis) => void;
 }
 
-export default function ColisTable({ colisList, onEdit, onDelete, onView, onViewDeliveryDetails }: ColisTableProps) {
+export default function ColisTable({ colisList, onEdit, onDelete, onView, onViewDeliveryDetails, onPrint }: ColisTableProps) {
   // Safety check: ensure colisList is an array
   const safeColisList = Array.isArray(colisList) ? colisList : [];
   
@@ -142,19 +143,28 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                       </button>
                     )}
                     <button
+                      onClick={() => onPrint(colis)}
+                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                      title="Imprimer"
+                    >
+                      <Printer size={18} />
+                    </button>
+                    <button
                       onClick={() => onEdit(colis)}
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                       title="Modifier"
                     >
                       <Pencil size={18} />
                     </button>
-                    <button
-                      onClick={() => onDelete(colis)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-                      title="Supprimer"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {colis.etat === 'En Attente' && (
+                      <button
+                        onClick={() => onDelete(colis)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -21,7 +21,23 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
         const result = await response.json();
         
         if (result.success) {
-          console.log('Detailed Colis Data:', result.data);
+          console.log('=== Detailed Colis Data from API ===');
+          console.log('Full response:', JSON.stringify(result.data, null, 2));
+          
+          // Log the getColisResult specifically
+          if (result.data.getColisResult) {
+            console.log('getColisResult:', JSON.stringify(result.data.getColisResult, null, 2));
+            
+            // Try to find tracking/delivery info in different fields
+            const colisResult = result.data.getColisResult;
+            if (colisResult.result_content) {
+              console.log('result_content:', colisResult.result_content);
+            }
+            if (colisResult.colis) {
+              console.log('colis data:', JSON.stringify(colisResult.colis, null, 2));
+            }
+          }
+          
           setDetailedData(result.data);
         }
       } catch (error) {
@@ -87,6 +103,159 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
               {colis.etat || 'En Cours de Livraison'}
             </span>
           </div>
+
+          {/* Delivery Person Details (Most Important) */}
+          {detailedData?.getColisResult && (
+            <>
+              {/* Parse the tracking text for delivery person info */}
+              {(() => {
+                const result = detailedData.getColisResult;
+                let trackingText = '';
+                let colisData = null;
+                
+                // Try to find tracking info in different possible fields
+                if (result.result_content) {
+                  if (typeof result.result_content === 'string') {
+                    trackingText = result.result_content;
+                  } else if (result.result_content.colis) {
+                    colisData = result.result_content.colis;
+                    // Try to get tracking text from colis object
+                    if (colisData.suivi) trackingText = colisData.suivi;
+                    if (colisData.tracking) trackingText = colisData.tracking;
+                    if (colisData.details_livraison) trackingText = colisData.details_livraison;
+                  }
+                }
+                
+                // Also check top-level fields
+                if (!trackingText && result.suivi) trackingText = result.suivi;
+                if (!trackingText && result.tracking_info) trackingText = result.tracking_info;
+                if (!trackingText && result.details) trackingText = result.details;
+                
+                // Check if we have colis data with delivery info
+                if (colisData) {
+                  const livreurNom = colisData.livreur_nom || colisData.nom_livreur;
+                  const livreurTel = colisData.livreur_tel || colisData.tel_livreur || colisData.livreur_telephone;
+                  const runsheet = colisData.runsheet || colisData.num_runsheet || colisData.numero_runsheet;
+                  const agence = colisData.agence || colisData.agence_livraison;
+                  const affectePar = colisData.affecte_par || colisData.assigned_by;
+                  
+                  if (livreurNom || livreurTel || runsheet) {
+                    return (
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-300 shadow-lg">
+                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+                          <User size={20} className="text-green-600" />
+                          👤 Informations du Livreur
+                        </h3>
+                        <div className="space-y-4">
+                          {livreurNom && (
+                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                              <p className="text-sm text-gray-600 mb-1">Nom du Livreur</p>
+                              <p className="font-bold text-gray-900 text-lg">{livreurNom}</p>
+                            </div>
+                          )}
+                          {livreurTel && (
+                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                              <p className="text-sm text-gray-600 mb-1">📞 Téléphone du Livreur</p>
+                              <p className="font-bold text-green-700 text-xl">{livreurTel}</p>
+                              <a 
+                                href={`tel:${livreurTel}`}
+                                className="inline-block mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+                              >
+                                📞 Appeler maintenant
+                              </a>
+                            </div>
+                          )}
+                          {runsheet && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">N° Runsheet</p>
+                              <p className="font-semibold text-gray-900">{runsheet}</p>
+                            </div>
+                          )}
+                          {agence && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">Agence</p>
+                              <p className="font-semibold text-gray-900">{agence}</p>
+                            </div>
+                          )}
+                          {affectePar && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">Affecté par</p>
+                              <p className="font-semibold text-gray-900">{affectePar}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                
+                // Fallback: Try to parse from tracking text
+                if (trackingText) {
+                  const livreurMatch = trackingText.match(/Livreur\s*:\s*([^(]+)\s*\(\s*(\d+)\s*\)/i);
+                  const runsheetMatch = trackingText.match(/runsheet\s*N°\s*(\d+)/i);
+                  const agenceMatch = trackingText.match(/agence\s+([A-Z]+)/i);
+                  const assignedByMatch = trackingText.match(/par\s+([^L]+)(?=Livreur)/i);
+                  
+                  if (livreurMatch || runsheetMatch) {
+                    return (
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-300 shadow-lg">
+                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+                          <User size={20} className="text-green-600" />
+                          👤 Informations du Livreur
+                        </h3>
+                        <div className="space-y-4">
+                          {livreurMatch && (
+                            <>
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <p className="text-sm text-gray-600 mb-1">Nom du Livreur</p>
+                                <p className="font-bold text-gray-900 text-lg">{livreurMatch[1].trim()}</p>
+                              </div>
+                              <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <p className="text-sm text-gray-600 mb-1">📞 Téléphone du Livreur</p>
+                                <p className="font-bold text-green-700 text-xl">{livreurMatch[2]}</p>
+                                <a 
+                                  href={`tel:${livreurMatch[2]}`}
+                                  className="inline-block mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+                                >
+                                  📞 Appeler maintenant
+                                </a>
+                              </div>
+                            </>
+                          )}
+                          {runsheetMatch && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">N° Runsheet</p>
+                              <p className="font-semibold text-gray-900">{runsheetMatch[1]}</p>
+                            </div>
+                          )}
+                          {agenceMatch && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">Agence</p>
+                              <p className="font-semibold text-gray-900">{agenceMatch[1]}</p>
+                            </div>
+                          )}
+                          {assignedByMatch && (
+                            <div className="bg-white rounded-lg p-3 shadow-sm">
+                              <p className="text-sm text-gray-600">Affecté par</p>
+                              <p className="font-semibold text-gray-900">{assignedByMatch[1].trim()}</p>
+                            </div>
+                          )}
+                        </div>
+                        <details className="mt-4">
+                          <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-900">
+                            Voir le texte complet
+                          </summary>
+                          <p className="mt-2 text-sm text-gray-700 bg-white p-3 rounded border">{trackingText}</p>
+                        </details>
+                      </div>
+                    );
+                  }
+                }
+                
+                return null;
+              })()}
+            </>
+          )}
 
           {/* Tracking Information */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">

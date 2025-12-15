@@ -9,6 +9,7 @@ import SearchBar from '@/components/SearchBar';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import ColisDetailModal from '@/components/ColisDetailModal';
 import DeliveryDetailsModal from '@/components/DeliveryDetailsModal';
+import ColisPrintView from '@/components/ColisPrintView';
 import { parseColisResponse } from '@/lib/parse-soap-response';
 
 interface ColisListViewProps {
@@ -24,6 +25,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
   const [colisToDelete, setColisToDelete] = useState<Colis | null>(null);
   const [colisToView, setColisToView] = useState<Colis | null>(null);
   const [colisForDeliveryDetails, setColisForDeliveryDetails] = useState<Colis | null>(null);
+  const [colisToPrint, setColisToPrint] = useState<Colis | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -261,6 +263,26 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setColisForDeliveryDetails(colis);
   };
 
+  const handlePrint = async (colis: Colis) => {
+    try {
+      // Fetch full colis details
+      const response = await fetch(`/api/colissimo/detail?id=${colis.code}`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Use the fetched details or fall back to the colis data we have
+        setColisToPrint(result.data.colis || colis);
+      } else {
+        // If API fails, just use the colis data we have
+        setColisToPrint(colis);
+      }
+    } catch (err) {
+      console.error('Error fetching colis details for print:', err);
+      // If there's an error, just use the colis data we have
+      setColisToPrint(colis);
+    }
+  };
+
   return (
     <>
       {/* Header Actions */}
@@ -340,6 +362,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
                 onDelete={setColisToDelete}
                 onView={setColisToView}
                 onViewDeliveryDetails={handleViewDeliveryDetails}
+                onPrint={handlePrint}
               />
             </div>
           )}
@@ -381,6 +404,23 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           colis={colisForDeliveryDetails}
           onClose={() => setColisForDeliveryDetails(null)}
         />
+      )}
+
+      {colisToPrint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Aperçu d'impression</h3>
+              <button
+                onClick={() => setColisToPrint(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <ColisPrintView colis={colisToPrint} />
+          </div>
+        </div>
       )}
     </>
   );

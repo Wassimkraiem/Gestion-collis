@@ -18,11 +18,8 @@ export async function GET(request: NextRequest) {
     
     const client = await getSOAPClient();
     
-    // Use getColis method with ID directly (like Python: getColis(id))
-    const result = await client.getColisAsync(id);
-    console.log('Get Colis Result:', result);
-    
-    console.log('Get Colis Response:', JSON.stringify(result, null, 2));
+    // Use getColis method with code_barre parameter
+    const result = await client.getColisAsync({ code_barre: id });
     
     // Parse response
     let responseData = result[0];

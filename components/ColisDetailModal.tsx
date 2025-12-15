@@ -1,7 +1,7 @@
 'use client';
 
 import { Colis } from '@/types/colissimo';
-import { X, Package, User, MapPin, Phone, DollarSign, Calendar } from 'lucide-react';
+import { X, Package, User, MapPin, Phone, DollarSign, Calendar, AlertTriangle } from 'lucide-react';
 
 interface ColisDetailModalProps {
   colis: Colis | null;
@@ -159,6 +159,21 @@ export default function ColisDetailModal({ colis, onClose }: ColisDetailModalPro
               )}
             </div>
           </div>
+
+          {/* Cause Section - for Anomaly */}
+          {colis.etat === 'Anomalie de Livraison' && (colis.anomalie || colis.cause_anomalie || colis.commentaire) && (
+            <div>
+              <h4 className="flex items-center gap-2 text-lg font-semibold text-red-800 mb-3">
+                <AlertTriangle size={20} className="text-red-600" />
+                Cause
+              </h4>
+              <div className="bg-red-50 border-2 border-red-300 p-4 rounded-lg">
+                <p className="text-red-900 font-medium text-base">
+                  {colis.anomalie || colis.cause_anomalie || colis.commentaire || 'Aucune cause spécifiée'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Comments */}
           {colis.commentaire && (

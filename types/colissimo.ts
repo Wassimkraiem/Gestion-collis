@@ -24,6 +24,8 @@ export interface Colis {
   agence_actuelle?: string;
   num_manifeste?: number;
   num_paiement?: string;
+  anomalie?: string;
+  cause_anomalie?: string;
 }
 
 export interface ColisFormData {

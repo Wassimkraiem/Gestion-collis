@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
     // Call ListeColis with page as string in object (WSDL requires: <page>string</page>)
     const result = await client.ListeColisAsync({ page: page.toString() });
     
-    // console.log('SOAP Response:', JSON.stringify(result, null, 2));
-    
     // Parse the response - result[0] contains the actual data
     let responseData = result[0];
     
@@ -20,7 +18,6 @@ export async function GET(request: NextRequest) {
     if (responseData.ListeColisResult && typeof responseData.ListeColisResult === 'string') {
       try {
         responseData.ListeColisResult = JSON.parse(responseData.ListeColisResult);
-        console.log('Parsed ListeColisResult:', JSON.stringify(responseData.ListeColisResult, null, 2));
       } catch (e) {
         console.error('Failed to parse ListeColisResult:', e);
       }
@@ -37,9 +34,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Log the final data structure
-    // console.log('Final response data:', JSON.stringify(responseData, null, 2));
     
     return NextResponse.json({
       success: true,
