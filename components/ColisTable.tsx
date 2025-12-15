@@ -108,6 +108,16 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                       'bg-gradient-to-r from-orange-500 to-orange-600 text-white' :
                     (colis.etat === 'En transit' || colis.etat === 'en_transit' || colis.etat === 'In Transit') ?
                       'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' :
+                    (colis.etat === 'Retour Dépôt' || colis.etat === 'Retour Depot') ?
+                      'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white' :
+                    (colis.etat === 'Retour Expéditeur' || colis.etat === 'Retour Expediteur') ?
+                      'bg-gradient-to-r from-pink-500 to-pink-600 text-white' :
+                    (colis.etat === 'Echange Reçu' || colis.etat === 'Echange Recu') ?
+                      'bg-gradient-to-r from-teal-500 to-teal-600 text-white' :
+                    (colis.etat === 'Anomalie de Livraison') ?
+                      'bg-gradient-to-r from-rose-500 to-rose-600 text-white' :
+                    (colis.etat === 'Livré Payé' || colis.etat === 'Livre Paye') ?
+                      'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white' :
                     'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
                   }`}>
                     {colis.etat || colis.statut || 'En Attente'}

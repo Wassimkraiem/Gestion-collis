@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (responseData.ListeColisResult && typeof responseData.ListeColisResult === 'string') {
       try {
         responseData.ListeColisResult = JSON.parse(responseData.ListeColisResult);
-        // console.log('Parsed ListeColisResult:', JSON.stringify(responseData.ListeColisResult, null, 2));
+        console.log('Parsed ListeColisResult:', JSON.stringify(responseData.ListeColisResult, null, 2));
       } catch (e) {
         console.error('Failed to parse ListeColisResult:', e);
       }

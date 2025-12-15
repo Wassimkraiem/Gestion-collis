@@ -1,6 +1,7 @@
 'use client';
 
 import { X, User, Phone, MapPin, Package, Calendar, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Colis } from '@/types/colissimo';
 
 interface DeliveryDetailsModalProps {
@@ -9,6 +10,31 @@ interface DeliveryDetailsModalProps {
 }
 
 export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetailsModalProps) {
+  const [detailedData, setDetailedData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/colissimo/detail?id=${colis.code}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('Detailed Colis Data:', result.data);
+          setDetailedData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (colis.code) {
+      fetchDetails();
+    }
+  }, [colis.code]);
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
@@ -31,8 +57,29 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
           </button>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement des détails...</p>
+          </div>
+        )}
+
         {/* Content */}
+        {!loading && (
         <div className="space-y-6">
+          
+          {/* Raw API Response (Debug) */}
+          {detailedData && (
+            <details className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <summary className="font-semibold text-gray-900 cursor-pointer">
+                📋 Données API Complètes (Debug)
+              </summary>
+              <pre className="mt-4 text-xs bg-white p-4 rounded border border-gray-300 overflow-auto max-h-96">
+                {JSON.stringify(detailedData, null, 2)}
+              </pre>
+            </details>
+          )}
           {/* Status Badge */}
           <div className="flex items-center justify-center">
             <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold flex items-center gap-2">
@@ -168,6 +215,23 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
             </div>
           )}
 
+          {/* Additional Fields from API */}
+          {detailedData && detailedData.getColisResult && (
+            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border border-cyan-200">
+              <h3 className="font-semibold text-gray-900 mb-3">Informations Supplémentaires de l'API</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {Object.entries(detailedData.getColisResult).map(([key, value]) => (
+                  <div key={key}>
+                    <p className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}</p>
+                    <p className="font-semibold text-gray-900">
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Payment Info */}
           {colis.num_paiement && (
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200">
@@ -175,17 +239,18 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
               <p className="font-mono text-gray-900">{colis.num_paiement}</p>
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-          >
-            Fermer
-          </button>
+          {/* Footer */}
+          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end gap-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
+        )}
       </div>
     </div>
   );

@@ -28,6 +28,11 @@ export default function DashboardLayout({
     if (pathname === '/en-transit') return 'En transit';
     if (pathname === '/a-enlever') return 'A Enlever';
     if (pathname === '/annule') return 'Annulé';
+    if (pathname === '/retour-depot') return 'Retour Dépôt';
+    if (pathname === '/retour-expediteur') return 'Retour Expéditeur';
+    if (pathname === '/echange-recu') return 'Echange Reçu';
+    if (pathname === '/anomalie') return 'Anomalie de Livraison';
+    if (pathname === '/livre-paye') return 'Livré Payé';
     return 'all';
   };
 

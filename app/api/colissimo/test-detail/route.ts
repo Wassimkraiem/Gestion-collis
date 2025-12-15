@@ -4,13 +4,13 @@ import { getSOAPClient } from '@/lib/soap-client';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
+    const code = searchParams.get('code');
     
-    if (!id) {
+    if (!code) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Colis ID is required'
+          error: 'Code barre is required'
         },
         { status: 400 }
       );
@@ -18,17 +18,20 @@ export async function GET(request: NextRequest) {
     
     const client = await getSOAPClient();
     
-    // Use getColis method with ID directly (like Python: getColis(id))
-    const result = await client.getColisAsync(id);
-    console.log('Get Colis Result:', result);
+    // Call getColis with the code
+    console.log('Calling getColis with code:', code);
+    const result = await client.getColisAsync({ code_barre: code });
     
-    console.log('Get Colis Response:', JSON.stringify(result, null, 2));
+    console.log('Raw getColis Response:', JSON.stringify(result, null, 2));
     
     // Parse response
     let responseData = result[0];
+    console.log('Response Data:', JSON.stringify(responseData, null, 2));
+    
     if (responseData.getColisResult && typeof responseData.getColisResult === 'string') {
       try {
         responseData.getColisResult = JSON.parse(responseData.getColisResult);
+        console.log('Parsed getColisResult:', JSON.stringify(responseData.getColisResult, null, 2));
       } catch (e) {
         console.error('Failed to parse getColisResult:', e);
       }
@@ -48,7 +51,8 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      data: responseData
+      data: responseData,
+      parsed: parsedData
     });
   } catch (error: any) {
     console.error('Error fetching colis detail:', error);

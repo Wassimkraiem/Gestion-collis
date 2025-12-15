@@ -230,7 +230,6 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.prix}
             onChange={handleChange}
             step="0.01"
-            min="0"
             required
             className="input"
             placeholder="0.00"

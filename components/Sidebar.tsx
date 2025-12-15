@@ -46,6 +46,15 @@ const statusConfig = [
     activeBg: 'bg-green-100'
   },
   { 
+    key: 'Livré Payé', 
+    path: '/livre-paye',
+    label: 'Livré Payé', 
+    icon: CheckCircle, 
+    color: 'text-emerald-600',
+    bgColor: 'hover:bg-emerald-50',
+    activeBg: 'bg-emerald-100'
+  },
+  { 
     key: 'En transit', 
     path: '/en-transit',
     label: 'En Transit', 
@@ -71,6 +80,42 @@ const statusConfig = [
     color: 'text-red-600',
     bgColor: 'hover:bg-red-50',
     activeBg: 'bg-red-100'
+  },
+  { 
+    key: 'Anomalie de Livraison', 
+    path: '/anomalie',
+    label: 'Anomalie', 
+    icon: AlertCircle, 
+    color: 'text-rose-600',
+    bgColor: 'hover:bg-rose-50',
+    activeBg: 'bg-rose-100'
+  },
+  { 
+    key: 'Retour Dépôt', 
+    path: '/retour-depot',
+    label: 'Retour Dépôt', 
+    icon: Home, 
+    color: 'text-indigo-600',
+    bgColor: 'hover:bg-indigo-50',
+    activeBg: 'bg-indigo-100'
+  },
+  { 
+    key: 'Retour Expéditeur', 
+    path: '/retour-expediteur',
+    label: 'Retour Expéditeur', 
+    icon: Package, 
+    color: 'text-pink-600',
+    bgColor: 'hover:bg-pink-50',
+    activeBg: 'bg-pink-100'
+  },
+  { 
+    key: 'Echange Reçu', 
+    path: '/echange-recu',
+    label: 'Échange Reçu', 
+    icon: CheckCircle, 
+    color: 'text-teal-600',
+    bgColor: 'hover:bg-teal-50',
+    activeBg: 'bg-teal-100'
   },
 ];
 

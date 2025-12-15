@@ -33,7 +33,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   useEffect(() => {
     fetchColisList();
-  }, [currentPage]);
+  }, []); // Remove currentPage dependency - we fetch all pages at once now
 
   useEffect(() => {
     // Filter by status when allColisList or statusFilter changes
@@ -44,25 +44,54 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/colissimo/list?page=${currentPage}`);
-      const result = await response.json();
+      // First, get the first page to know total pages
+      const firstResponse = await fetch(`/api/colissimo/list?page=1`);
+      const firstResult = await firstResponse.json();
       
-      if (result.success) {
-        const data = result.data;
-        const parsedList = parseColisResponse(data);
-        
-        // Extract pagination info
-        if (data.ListeColisResult && data.ListeColisResult.result_content) {
-          const content = data.ListeColisResult.result_content;
-          setTotalPages(parseInt(content.nbPages) || 1);
-          setTotalColis(parseInt(content.nbColis) || 0);
-        }
-        
-        setAllColisList(parsedList);
-      } else {
-        setError(result.error || 'Failed to fetch colis list');
+      if (!firstResult.success) {
+        setError(firstResult.error || 'Failed to fetch colis list');
         setColisList([]);
+        setLoading(false);
+        return;
       }
+
+      const firstData = firstResult.data;
+      let allColis = parseColisResponse(firstData);
+      
+      // Get total pages
+      let totalPagesCount = 1;
+      if (firstData.ListeColisResult && firstData.ListeColisResult.result_content) {
+        const content = firstData.ListeColisResult.result_content;
+        totalPagesCount = parseInt(content.nbPages) || 1;
+        setTotalPages(totalPagesCount);
+        setTotalColis(parseInt(content.nbColis) || 0);
+      }
+      
+      // Fetch all remaining pages to get ALL colis
+      console.log(`Fetching all ${totalPagesCount} pages to get complete data...`);
+      const fetchPromises = [];
+      for (let page = 2; page <= totalPagesCount; page++) {
+        fetchPromises.push(
+          fetch(`/api/colissimo/list?page=${page}`)
+            .then(res => res.json())
+            .then(result => {
+              if (result.success) {
+                return parseColisResponse(result.data);
+              }
+              return [];
+            })
+        );
+      }
+      
+      // Wait for all pages to load
+      const allPages = await Promise.all(fetchPromises);
+      allPages.forEach(pageColis => {
+        allColis = [...allColis, ...pageColis];
+      });
+      
+      console.log(`Loaded ${allColis.length} total colis from ${totalPagesCount} pages`);
+      setAllColisList(allColis);
+      
     } catch (err: any) {
       setError(err.message || 'Failed to fetch colis list');
       console.error('Error fetching colis:', err);
@@ -317,30 +346,14 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         </>
       )}
 
-      {/* Pagination */}
-      {!showForm && !loading && totalPages > 1 && (
+      {/* Stats */}
+      {!showForm && !loading && (
         <div className="mt-6 card p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                Page {currentPage} sur {totalPages} • Total: {totalColis} colis
+                Affichage: {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`} • Total dans le système: {totalColis} colis
               </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border-2 border-gray-300 rounded-lg disabled:opacity-50"
-              >
-                Précédent
-              </button>
-              <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 border-2 border-gray-300 rounded-lg disabled:opacity-50"
-              >
-                Suivant
-              </button>
             </div>
           </div>
         </div>
