@@ -46,15 +46,6 @@ const statusConfig = [
     activeBg: 'bg-green-100'
   },
   { 
-    key: 'Livré Payé', 
-    path: '/livre-paye',
-    label: 'Livré Payé', 
-    icon: CheckCircle, 
-    color: 'text-emerald-600',
-    bgColor: 'hover:bg-emerald-50',
-    activeBg: 'bg-emerald-100'
-  },
-  { 
     key: 'En transit', 
     path: '/en-transit',
     label: 'En Transit', 

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSOAPClient } from '@/lib/soap-client';
-import { ColisFormData } from '@/types/colissimo';
 
-// Handle status change requests
 export async function POST(request: NextRequest) {
   try {
     const { code_barre, newStatus } = await request.json();
@@ -42,7 +40,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const currentColis = parsedData?.result_content?.colis;
+    const currentColis = parsedData?.result_content;
+    
     if (!currentColis) {
       return NextResponse.json(
         {
@@ -57,15 +56,36 @@ export async function POST(request: NextRequest) {
     const updatedColis = {
       ...currentColis,
       etat: newStatus,
-      id: code_barre
+      code_barre: code_barre
     };
     
     // Call ModifierColis to update
     const updateResult = await client.ModifierColisAsync({ pic: JSON.stringify(updatedColis) });
+    console.log('updateResult', updateResult);
+    // Parse the result to check for actual success
+    let modifyResponse = updateResult[0];
+    if (modifyResponse.ModifierColisResult && typeof modifyResponse.ModifierColisResult === 'string') {
+      try {
+        modifyResponse.ModifierColisResult = JSON.parse(modifyResponse.ModifierColisResult);
+      } catch (e) {
+        console.error('Failed to parse ModifierColisResult:', e);
+      }
+    }
+    
+    const modifyData = modifyResponse.ModifierColisResult;
+    if (modifyData && modifyData.result_type === 'erreur') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `API Error: ${modifyData.result_code} - ${modifyData.result_content}`
+        },
+        { status: 400 }
+      );
+    }
     
     return NextResponse.json({
       success: true,
-      data: updateResult[0],
+      data: modifyData,
       message: 'Status updated successfully'
     });
   } catch (error: any) {
@@ -74,59 +94,6 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: error.message || 'Failed to change colis status'
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const data: ColisFormData & { id: string } = await request.json();
-    
-    if (!data.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Colis ID is required'
-        },
-        { status: 400 }
-      );
-    }
-    
-    const colis = {
-      id: data.id,
-      reference: data.reference,
-      client: data.client,
-      adresse: data.adresse,
-      ville: data.ville,
-      gouvernorat: data.gouvernorat,
-      tel1: data.tel1,
-      tel2: data.tel2 || '',
-      designation: data.designation,
-      prix: data.prix,
-      nb_pieces: data.nb_pieces,
-      type: data.type,
-      commentaire: data.commentaire || '',
-      echange: data.echange,
-      cod: data.cod || 0,
-      poids: data.poids || 0
-    };
-    
-    const client = await getSOAPClient();
-    const result = await client.ModifierColisAsync({ pic: JSON.stringify(colis) });
-    
-    return NextResponse.json({
-      success: true,
-      data: result[0],
-      message: 'Colis updated successfully'
-    });
-  } catch (error: any) {
-    console.error('Error updating colis:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Failed to update colis'
       },
       { status: 500 }
     );

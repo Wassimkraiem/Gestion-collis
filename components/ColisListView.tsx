@@ -13,11 +13,15 @@ import { parseColisResponse } from '@/lib/parse-soap-response';
 
 interface ColisListViewProps {
   statusFilter?: string;
+  showBulkToggle?: boolean;
 }
 
-export default function ColisListView({ statusFilter = 'all' }: ColisListViewProps) {
+const ITEMS_PER_PAGE = 30;
+
+export default function ColisListView({ statusFilter = 'all', showBulkToggle = false }: ColisListViewProps) {
   const [allColisList, setAllColisList] = useState<Colis[]>([]);
-  const [colisList, setColisList] = useState<Colis[]>([]);
+  const [filteredColisList, setFilteredColisList] = useState<Colis[]>([]);
+  const [displayedColisList, setDisplayedColisList] = useState<Colis[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selectedColis, setSelectedColis] = useState<Colis | null>(null);
@@ -40,6 +44,17 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     filterByStatus(allColisList, statusFilter);
   }, [statusFilter, allColisList]);
 
+  useEffect(() => {
+    // Update displayed colis when filteredColisList or currentPage changes
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    setDisplayedColisList(filteredColisList.slice(startIndex, endIndex));
+    
+    // Calculate total pages
+    const pages = Math.ceil(filteredColisList.length / ITEMS_PER_PAGE);
+    setTotalPages(pages || 1);
+  }, [filteredColisList, currentPage]);
+
   const fetchColisList = async () => {
     setLoading(true);
     setError(null);
@@ -50,7 +65,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
       
       if (!firstResult.success) {
         setError(firstResult.error || 'Failed to fetch colis list');
-        setColisList([]);
+        setFilteredColisList([]);
         setLoading(false);
         return;
       }
@@ -95,18 +110,19 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     } catch (err: any) {
       setError(err.message || 'Failed to fetch colis list');
       console.error('Error fetching colis:', err);
-      setColisList([]);
+      setFilteredColisList([]);
     } finally {
       setLoading(false);
     }
   };
 
   const filterByStatus = (list: Colis[], status: string) => {
+    setCurrentPage(1); // Reset to first page when filtering
     if (status === 'all') {
-      setColisList(list);
+      setFilteredColisList(list);
     } else {
       const filtered = list.filter((colis) => colis.etat === status);
-      setColisList(filtered);
+      setFilteredColisList(filtered);
     }
   };
 
@@ -118,6 +134,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
     setLoading(true);
     setError(null);
+    setCurrentPage(1); // Reset to first page on search
     try {
       let baseList = statusFilter === 'all' 
         ? allColisList 
@@ -150,11 +167,11 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         }
       });
       
-      setColisList(filtered);
+      setFilteredColisList(filtered);
     } catch (err: any) {
       setError(err.message || 'Search failed');
       console.error('Error searching colis:', err);
-      setColisList([]);
+      setFilteredColisList([]);
     } finally {
       setLoading(false);
     }
@@ -194,7 +211,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/colissimo/update', {
+      const response = await fetch('/api/colissimo/status', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, id: selectedColis.code }),
@@ -261,6 +278,92 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setColisForDeliveryDetails(colis);
   };
 
+  const handleToggleStatus = async (colis: Colis) => {
+    if (colis.etat !== 'En Attente') return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch('/api/colissimo/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code_barre: colis.code,
+          newStatus: 'A Enlever'
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setSuccess('Statut changé à "A Enlever" avec succès');
+        await fetchColisList();
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setError(result.error || 'Échec du changement de statut');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Échec du changement de statut');
+      console.error('Error toggling status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkToggleStatus = async () => {
+    const enAttenteList = filteredColisList.filter(c => c.etat === 'En Attente');
+    
+    if (enAttenteList.length === 0) {
+      setError('Aucun colis "En Attente" à changer');
+      return;
+    }
+    
+    if (!confirm(`Voulez-vous vraiment changer tous les ${enAttenteList.length} colis "En Attente" vers "A Enlever" ?`)) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      let successCount = 0;
+      let failCount = 0;
+      
+      // Process all colis
+      for (const colis of enAttenteList) {
+        try {
+          const response = await fetch('/api/colissimo/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code_barre: colis.code,
+              newStatus: 'A Enlever'
+            }),
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        setSuccess(`${successCount} colis changés avec succès${failCount > 0 ? `, ${failCount} échecs` : ''}`);
+        await fetchColisList();
+        setTimeout(() => setSuccess(null), 5000);
+      } else {
+        setError('Échec du changement de statut pour tous les colis');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Échec du changement de statut en masse');
+      console.error('Error bulk toggling status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePrint = async (colis: Colis) => {
     try {
       setLoading(true);
@@ -309,10 +412,20 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             {statusFilter === 'all' ? 'Tous les colis' : `Colis: ${statusFilter}`}
           </h2>
           <p className="text-gray-600 mt-1">
-            {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`}
+            {filteredColisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`}
           </p>
         </div>
         <div className="flex gap-3">
+          {showBulkToggle && statusFilter === 'En Attente' && (
+            <button
+              onClick={handleBulkToggleStatus}
+              disabled={loading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 hover:shadow-lg disabled:opacity-50 transition-all duration-200 font-medium"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              Tout changer à "A Enlever"
+            </button>
+          )}
           <button
             onClick={fetchColisList}
             disabled={loading}
@@ -374,27 +487,79 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           ) : (
             <div className="animate-fadeIn">
               <ColisTable
-                colisList={colisList}
+                colisList={displayedColisList}
                 onEdit={handleEdit}
                 onDelete={setColisToDelete}
                 onView={setColisToView}
                 onViewDeliveryDetails={handleViewDeliveryDetails}
                 onPrint={handlePrint}
+                onToggleStatus={handleToggleStatus}
               />
             </div>
           )}
         </>
       )}
 
-      {/* Stats */}
-      {!showForm && !loading && (
+      {/* Pagination & Stats */}
+      {!showForm && !loading && filteredColisList.length > 0 && (
         <div className="mt-6 card p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <p className="text-sm text-gray-600">
-                Affichage: {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`} • Total dans le système: {totalColis} colis
+                Affichage: {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredColisList.length)} de {filteredColisList.length} colis
+                {statusFilter !== 'all' && ` (${statusFilter})`} • Total dans le système: {totalColis} colis
               </p>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Précédent
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 7) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 4) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNum = totalPages - 6 + i;
+                    } else {
+                      pageNum = currentPage - 3 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1 rounded-lg transition-all ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white font-semibold'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Suivant
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

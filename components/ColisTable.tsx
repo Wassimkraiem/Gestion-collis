@@ -1,7 +1,7 @@
 'use client';
 
 import { Colis } from '@/types/colissimo';
-import { Pencil, Trash2, Eye, Truck, Printer } from 'lucide-react';
+import { Pencil, Trash2, Eye, Truck, Printer, ArrowRight } from 'lucide-react';
 
 interface ColisTableProps {
   colisList: Colis[];
@@ -10,9 +10,10 @@ interface ColisTableProps {
   onView: (colis: Colis) => void;
   onViewDeliveryDetails?: (colis: Colis) => void;
   onPrint: (colis: Colis) => void;
+  onToggleStatus?: (colis: Colis) => void;
 }
 
-export default function ColisTable({ colisList, onEdit, onDelete, onView, onViewDeliveryDetails, onPrint }: ColisTableProps) {
+export default function ColisTable({ colisList, onEdit, onDelete, onView, onViewDeliveryDetails, onPrint, onToggleStatus }: ColisTableProps) {
   // Safety check: ensure colisList is an array
   const safeColisList = Array.isArray(colisList) ? colisList : [];
   
@@ -156,6 +157,15 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                     >
                       <Pencil size={18} />
                     </button>
+                    {colis.etat === 'En Attente' && onToggleStatus && (
+                      <button
+                        onClick={() => onToggleStatus(colis)}
+                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                        title="Changer à 'A Enlever'"
+                      >
+                        <ArrowRight size={18} />
+                      </button>
+                    )}
                     {colis.etat === 'En Attente' && (
                       <button
                         onClick={() => onDelete(colis)}
