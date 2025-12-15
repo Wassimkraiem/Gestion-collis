@@ -9,7 +9,6 @@ import SearchBar from '@/components/SearchBar';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import ColisDetailModal from '@/components/ColisDetailModal';
 import DeliveryDetailsModal from '@/components/DeliveryDetailsModal';
-import ColisPrintView from '@/components/ColisPrintView';
 import { parseColisResponse } from '@/lib/parse-soap-response';
 
 interface ColisListViewProps {
@@ -25,7 +24,6 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
   const [colisToDelete, setColisToDelete] = useState<Colis | null>(null);
   const [colisToView, setColisToView] = useState<Colis | null>(null);
   const [colisForDeliveryDetails, setColisForDeliveryDetails] = useState<Colis | null>(null);
-  const [colisToPrint, setColisToPrint] = useState<Colis | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -265,21 +263,40 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   const handlePrint = async (colis: Colis) => {
     try {
-      // Fetch full colis details
-      const response = await fetch(`/api/colissimo/detail?id=${colis.code}`);
+      setLoading(true);
+      // Fetch PDF from API
+      const response = await fetch(`/api/colissimo/pdf?id=${colis.code}`);
       const result = await response.json();
       
-      if (result.success && result.data) {
-        // Use the fetched details or fall back to the colis data we have
-        setColisToPrint(result.data.colis || colis);
+      if (result.success && result.pdf) {
+        // Convert base64 to blob and open in new window
+        const base64Data = result.pdf;
+        const binaryString = window.atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        
+        // Open PDF in new window
+        const printWindow = window.open(url, '_blank');
+        if (printWindow) {
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+        
+        // Clean up the URL after a delay
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else {
-        // If API fails, just use the colis data we have
-        setColisToPrint(colis);
+        setError(result.error || 'Échec de la génération du PDF');
       }
-    } catch (err) {
-      console.error('Error fetching colis details for print:', err);
-      // If there's an error, just use the colis data we have
-      setColisToPrint(colis);
+    } catch (err: any) {
+      setError(err.message || 'Échec de la génération du PDF');
+      console.error('Error fetching PDF:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -404,23 +421,6 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           colis={colisForDeliveryDetails}
           onClose={() => setColisForDeliveryDetails(null)}
         />
-      )}
-
-      {colisToPrint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">Aperçu d'impression</h3>
-              <button
-                onClick={() => setColisToPrint(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-            <ColisPrintView colis={colisToPrint} />
-          </div>
-        </div>
       )}
     </>
   );
