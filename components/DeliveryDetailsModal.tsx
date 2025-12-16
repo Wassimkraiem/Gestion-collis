@@ -1,6 +1,6 @@
 'use client';
 
-import { X, User, Phone, MapPin, Package, Calendar, Truck } from 'lucide-react';
+import { X, User, Phone, MapPin, Package, Calendar, Truck, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Colis } from '@/types/colissimo';
 
@@ -10,50 +10,65 @@ interface DeliveryDetailsModalProps {
 }
 
 export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetailsModalProps) {
-  const [detailedData, setDetailedData] = useState<any>(null);
+  const [enrichedColis, setEnrichedColis] = useState<any>(colis);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDetails = async () => {
+    const fetchEnrichedDetails = async () => {
+      if (!colis.code) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const response = await fetch(`/api/colissimo/detail?id=${colis.code}`);
+        
+        // Call enrich-details API to get livreur, tel_livreur, dern_anomalie
+        const response = await fetch('/api/colissimo/enrich-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codeBars: [colis.code] }),
+        });
+        
         const result = await response.json();
         
-        if (result.success) {
-          console.log('=== Detailed Colis Data from API ===');
-          console.log('Full response:', JSON.stringify(result.data, null, 2));
-          
-          // Log the getColisResult specifically
-          if (result.data.getColisResult) {
-            console.log('getColisResult:', JSON.stringify(result.data.getColisResult, null, 2));
-            
-            // Try to find tracking/delivery info in different fields
-            const colisResult = result.data.getColisResult;
-            if (colisResult.result_content) {
-              console.log('result_content:', colisResult.result_content);
-            }
-            if (colisResult.colis) {
-              console.log('colis data:', JSON.stringify(colisResult.colis, null, 2));
-            }
-          }
-          
-          setDetailedData(result.data);
+        if (result.success && result.data[colis.code]) {
+          // Merge enriched data with existing colis data
+          setEnrichedColis({
+            ...colis,
+            livreur: result.data[colis.code].livreur || '',
+            tel_livreur: result.data[colis.code].tel_livreur || '',
+            dern_anomalie: result.data[colis.code].dern_anomalie || null,
+            date_enlevement: result.data[colis.code].date_enlevement || null,
+            date_livraison: result.data[colis.code].date_livraison || null,
+            frais_livraison: result.data[colis.code].frais_livraison ?? 0,
+            frais_retour: result.data[colis.code].frais_retour ?? 0,
+          });
+        } else {
+          // Use original colis data if enrichment fails
+          setEnrichedColis(colis);
         }
       } catch (error) {
-        console.error('Error fetching details:', error);
+        console.error('Error fetching enriched details:', error);
+        // Use original colis data if enrichment fails
+        setEnrichedColis(colis);
       } finally {
         setLoading(false);
       }
     };
 
-    if (colis.code) {
-      fetchDetails();
-    }
-  }, [colis.code]);
+    fetchEnrichedDetails();
+  }, [colis]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-      <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+      onClick={onClose}
+    >
+      <div 
+        className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -84,233 +99,115 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
         {/* Content */}
         {!loading && (
         <div className="space-y-6">
-          
-          {/* Raw API Response (Debug) */}
-          {detailedData && (
-            <details className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <summary className="font-semibold text-gray-900 cursor-pointer">
-                📋 Données API Complètes (Debug)
-              </summary>
-              <pre className="mt-4 text-xs bg-white p-4 rounded border border-gray-300 overflow-auto max-h-96">
-                {JSON.stringify(detailedData, null, 2)}
-              </pre>
-            </details>
+          {/* HERO SECTION: Anomaly - Most Important for Anomaly Colis! */}
+          {(enrichedColis.etat === 'Anomalie de Livraison' && enrichedColis.dern_anomalie) ? (
+            <div className="bg-gradient-to-br from-rose-400 via-red-500 to-rose-600 rounded-2xl p-8 shadow-2xl border-4 border-red-300 animate-pulse-slow">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                  <AlertTriangle size={40} className="text-red-600" />
+                </div>
+                <h2 className="text-3xl font-extrabold text-white mb-2">⚠️ Anomalie de Livraison</h2>
+                <p className="text-red-100 text-lg">Raison du problème de livraison</p>
+              </div>
+              
+              <div className="bg-white rounded-xl p-8 shadow-xl">
+                <p className="text-sm text-gray-500 mb-3 uppercase tracking-wide">⚠️ Cause de l'Anomalie</p>
+                <p className="font-black text-red-700 text-4xl">{enrichedColis.dern_anomalie}</p>
+              </div>
+            </div>
+          ) : (enrichedColis.livreur || enrichedColis.tel_livreur) ? (
+            /* HERO SECTION: Delivery Person Details */
+            <div className="bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 rounded-2xl p-8 shadow-2xl border-4 border-green-300 animate-pulse-slow">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                  <Truck size={40} className="text-green-600" />
+                </div>
+                <h2 className="text-3xl font-extrabold text-white mb-2">🚚 Livreur Assigné</h2>
+                <p className="text-green-100 text-lg">Contactez votre livreur directement</p>
+              </div>
+              
+              <div className="space-y-4">
+                {enrichedColis.livreur && (
+                  <div className="bg-white rounded-xl p-6 shadow-xl">
+                    <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">👤 Nom du Livreur</p>
+                    <p className="font-black text-gray-900 text-3xl">{enrichedColis.livreur}</p>
+                  </div>
+                )}
+                {enrichedColis.tel_livreur && (
+                  <div className="bg-white rounded-xl p-6 shadow-xl">
+                    <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">📞 Téléphone</p>
+                    <p className="font-black text-green-700 text-4xl">{enrichedColis.tel_livreur}</p>
+                  </div>
+                )}
+                {enrichedColis.agence_actuelle && (
+                  <div className="bg-white/90 rounded-lg p-4">
+                    <p className="text-sm text-gray-600">📍 Agence</p>
+                    <p className="font-bold text-gray-900 text-xl">{enrichedColis.agence_actuelle}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Status Badge (only shown if no livreur info and no anomaly) */
+            <div className="flex items-center justify-center">
+              <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold flex items-center gap-2">
+                <Truck size={16} />
+                {enrichedColis.etat || 'En Cours de Livraison'}
+              </span>
+            </div>
           )}
-          {/* Status Badge */}
-          <div className="flex items-center justify-center">
-            <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold flex items-center gap-2">
-              <Truck size={16} />
-              {colis.etat || 'En Cours de Livraison'}
-            </span>
+
+          {/* Destination - Client Information */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-200">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+              <MapPin size={20} className="text-blue-600" />
+              📍 Destination de Livraison
+            </h3>
+            <div className="space-y-3 bg-white rounded-lg p-4">
+              <div>
+                <p className="text-sm text-gray-600">Client</p>
+                <p className="font-bold text-gray-900 text-lg">{enrichedColis.client}</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Phone size={16} className="text-gray-400 mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600">Téléphone Client</p>
+                  <p className="font-semibold text-gray-900">{enrichedColis.tel1}</p>
+                  {enrichedColis.tel2 && (
+                    <p className="font-semibold text-gray-900">{enrichedColis.tel2}</p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Adresse Complète</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.adresse}</p>
+                <p className="text-sm text-gray-600 mt-1">{enrichedColis.ville}, {enrichedColis.gouvernorat}</p>
+              </div>
+            </div>
           </div>
 
-          {/* Delivery Person Details (Most Important) */}
-          {detailedData?.getColisResult && (
-            <>
-              {/* Parse the tracking text for delivery person info */}
-              {(() => {
-                const result = detailedData.getColisResult;
-                let trackingText = '';
-                let colisData = null;
-                
-                // Try to find tracking info in different possible fields
-                if (result.result_content) {
-                  if (typeof result.result_content === 'string') {
-                    trackingText = result.result_content;
-                  } else if (result.result_content.colis) {
-                    colisData = result.result_content.colis;
-                    // Try to get tracking text from colis object
-                    if (colisData.suivi) trackingText = colisData.suivi;
-                    if (colisData.tracking) trackingText = colisData.tracking;
-                    if (colisData.details_livraison) trackingText = colisData.details_livraison;
-                  }
-                }
-                
-                // Also check top-level fields
-                if (!trackingText && result.suivi) trackingText = result.suivi;
-                if (!trackingText && result.tracking_info) trackingText = result.tracking_info;
-                if (!trackingText && result.details) trackingText = result.details;
-                
-                // Check if we have colis data with delivery info
-                if (colisData) {
-                  const livreurNom = colisData.livreur_nom || colisData.nom_livreur;
-                  const livreurTel = colisData.livreur_tel || colisData.tel_livreur || colisData.livreur_telephone;
-                  const runsheet = colisData.runsheet || colisData.num_runsheet || colisData.numero_runsheet;
-                  const agence = colisData.agence || colisData.agence_livraison;
-                  const affectePar = colisData.affecte_par || colisData.assigned_by;
-                  
-                  if (livreurNom || livreurTel || runsheet) {
-                    return (
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-300 shadow-lg">
-                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
-                          <User size={20} className="text-green-600" />
-                          👤 Informations du Livreur
-                        </h3>
-                        <div className="space-y-4">
-                          {livreurNom && (
-                            <div className="bg-white rounded-lg p-4 shadow-sm">
-                              <p className="text-sm text-gray-600 mb-1">Nom du Livreur</p>
-                              <p className="font-bold text-gray-900 text-lg">{livreurNom}</p>
-                            </div>
-                          )}
-                          {livreurTel && (
-                            <div className="bg-white rounded-lg p-4 shadow-sm">
-                              <p className="text-sm text-gray-600 mb-1">📞 Téléphone du Livreur</p>
-                              <p className="font-bold text-green-700 text-xl">{livreurTel}</p>
-                              <a 
-                                href={`tel:${livreurTel}`}
-                                className="inline-block mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
-                              >
-                                📞 Appeler maintenant
-                              </a>
-                            </div>
-                          )}
-                          {runsheet && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">N° Runsheet</p>
-                              <p className="font-semibold text-gray-900">{runsheet}</p>
-                            </div>
-                          )}
-                          {agence && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">Agence</p>
-                              <p className="font-semibold text-gray-900">{agence}</p>
-                            </div>
-                          )}
-                          {affectePar && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">Affecté par</p>
-                              <p className="font-semibold text-gray-900">{affectePar}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
-                }
-                
-                // Fallback: Try to parse from tracking text
-                if (trackingText) {
-                  const livreurMatch = trackingText.match(/Livreur\s*:\s*([^(]+)\s*\(\s*(\d+)\s*\)/i);
-                  const runsheetMatch = trackingText.match(/runsheet\s*N°\s*(\d+)/i);
-                  const agenceMatch = trackingText.match(/agence\s+([A-Z]+)/i);
-                  const assignedByMatch = trackingText.match(/par\s+([^L]+)(?=Livreur)/i);
-                  
-                  if (livreurMatch || runsheetMatch) {
-                    return (
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-300 shadow-lg">
-                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
-                          <User size={20} className="text-green-600" />
-                          👤 Informations du Livreur
-                        </h3>
-                        <div className="space-y-4">
-                          {livreurMatch && (
-                            <>
-                              <div className="bg-white rounded-lg p-4 shadow-sm">
-                                <p className="text-sm text-gray-600 mb-1">Nom du Livreur</p>
-                                <p className="font-bold text-gray-900 text-lg">{livreurMatch[1].trim()}</p>
-                              </div>
-                              <div className="bg-white rounded-lg p-4 shadow-sm">
-                                <p className="text-sm text-gray-600 mb-1">📞 Téléphone du Livreur</p>
-                                <p className="font-bold text-green-700 text-xl">{livreurMatch[2]}</p>
-                                <a 
-                                  href={`tel:${livreurMatch[2]}`}
-                                  className="inline-block mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
-                                >
-                                  📞 Appeler maintenant
-                                </a>
-                              </div>
-                            </>
-                          )}
-                          {runsheetMatch && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">N° Runsheet</p>
-                              <p className="font-semibold text-gray-900">{runsheetMatch[1]}</p>
-                            </div>
-                          )}
-                          {agenceMatch && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">Agence</p>
-                              <p className="font-semibold text-gray-900">{agenceMatch[1]}</p>
-                            </div>
-                          )}
-                          {assignedByMatch && (
-                            <div className="bg-white rounded-lg p-3 shadow-sm">
-                              <p className="text-sm text-gray-600">Affecté par</p>
-                              <p className="font-semibold text-gray-900">{assignedByMatch[1].trim()}</p>
-                            </div>
-                          )}
-                        </div>
-                        <details className="mt-4">
-                          <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-900">
-                            Voir le texte complet
-                          </summary>
-                          <p className="mt-2 text-sm text-gray-700 bg-white p-3 rounded border">{trackingText}</p>
-                        </details>
-                      </div>
-                    );
-                  }
-                }
-                
-                return null;
-              })()}
-            </>
-          )}
-
           {/* Tracking Information */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Package size={18} className="text-blue-600" />
+              <Package size={18} className="text-gray-600" />
               Informations de Suivi
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Code Barre</p>
-                <p className="font-semibold text-gray-900">{colis.code || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.code || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Référence</p>
-                <p className="font-semibold text-gray-900">{colis.reference || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.reference || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">N° Manifeste</p>
-                <p className="font-semibold text-gray-900">{colis.num_manifeste || 'N/A'}</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.num_manifeste || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Agence Actuelle</p>
-                <p className="font-semibold text-gray-900">{colis.agence_actuelle || 'N/A'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Client Information */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <User size={18} className="text-gray-600" />
-              Informations Client
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-600">Nom du Client</p>
-                <p className="font-semibold text-gray-900">{colis.client}</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <Phone size={16} className="text-gray-400 mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600">Téléphone</p>
-                  <p className="font-semibold text-gray-900">{colis.tel1}</p>
-                  {colis.tel2 && (
-                    <p className="font-semibold text-gray-900">{colis.tel2}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin size={16} className="text-gray-400 mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600">Adresse de Livraison</p>
-                  <p className="font-semibold text-gray-900">{colis.adresse}</p>
-                  <p className="text-sm text-gray-600">{colis.ville}, {colis.gouvernorat}</p>
-                </div>
+                <p className="text-sm text-gray-600">État</p>
+                <p className="font-semibold text-blue-700">{enrichedColis.etat || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -324,88 +221,104 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Désignation</p>
-                <p className="font-semibold text-gray-900">{colis.designation}</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.designation}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Prix</p>
-                <p className="font-semibold text-gray-900">{colis.prix} TND</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.prix} TND</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Nombre de Pièces</p>
-                <p className="font-semibold text-gray-900">{colis.nb_pieces}</p>
+                <p className="font-semibold text-gray-900">{enrichedColis.nb_pieces}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Type</p>
                 <p className="font-semibold text-gray-900">
-                  {colis.type === 'VO' ? 'Vente en Ligne' : colis.type === 'EC' ? 'Échange' : 'Document'}
+                  {enrichedColis.type === 'VO' ? 'Vente en Ligne' : enrichedColis.type === 'EC' ? 'Échange' : 'Document'}
                 </p>
               </div>
-              {colis.poids && (
-                <div>
-                  <p className="text-sm text-gray-600">Poids</p>
-                  <p className="font-semibold text-gray-900">{colis.poids} kg</p>
-                </div>
-              )}
-              {colis.cod && (
-                <div>
-                  <p className="text-sm text-gray-600">COD</p>
-                  <p className="font-semibold text-gray-900">{colis.cod} TND</p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Timeline */}
-          {colis.date_creation && (
+          {(enrichedColis.date_creation || enrichedColis.date_enlevement || enrichedColis.date_livraison) && (
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Calendar size={18} className="text-green-600" />
                 Chronologie
               </h3>
               <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm text-gray-600">Date de Création</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(colis.date_creation).toLocaleString('fr-FR')}
-                    </p>
+                {enrichedColis.date_creation && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date de Création</p>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(enrichedColis.date_creation).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+                {enrichedColis.date_enlevement && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date d'Enlèvement</p>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(enrichedColis.date_enlevement).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {enrichedColis.date_livraison && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date de Livraison</p>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(enrichedColis.date_livraison).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Comments */}
-          {colis.commentaire && (
+          {enrichedColis.commentaire && (
             <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200">
               <h3 className="font-semibold text-gray-900 mb-2">Commentaires</h3>
-              <p className="text-gray-700">{colis.commentaire}</p>
+              <p className="text-gray-700">{enrichedColis.commentaire}</p>
             </div>
           )}
 
-          {/* Additional Fields from API */}
-          {detailedData && detailedData.getColisResult && (
+          {/* Fees Information */}
+          {(enrichedColis.frais_livraison !== undefined || enrichedColis.frais_retour !== undefined) && (
             <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border border-cyan-200">
-              <h3 className="font-semibold text-gray-900 mb-3">Informations Supplémentaires de l'API</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">Frais</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                {Object.entries(detailedData.getColisResult).map(([key, value]) => (
-                  <div key={key}>
-                    <p className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}</p>
-                    <p className="font-semibold text-gray-900">
-                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                    </p>
+                {enrichedColis.frais_livraison !== undefined && (
+                  <div>
+                    <p className="text-gray-600">Frais de Livraison</p>
+                    <p className="font-semibold text-gray-900">{enrichedColis.frais_livraison} TND</p>
                   </div>
-                ))}
+                )}
+                {enrichedColis.frais_retour !== undefined && (
+                  <div>
+                    <p className="text-gray-600">Frais de Retour</p>
+                    <p className="font-semibold text-gray-900">{enrichedColis.frais_retour} TND</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Payment Info */}
-          {colis.num_paiement && (
+          {enrichedColis.num_paiement && (
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200">
               <h3 className="font-semibold text-gray-900 mb-2">Numéro de Paiement</h3>
-              <p className="font-mono text-gray-900">{colis.num_paiement}</p>
+              <p className="font-mono text-gray-900">{enrichedColis.num_paiement}</p>
             </div>
           )}
 
@@ -424,4 +337,3 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
     </div>
   );
 }
-

@@ -20,7 +20,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
     client: '',
     adresse: '',
     ville: '',
-    gouvernorat: 'Tunis',
+    gouvernorat: '',
     tel1: '',
     tel2: '',
     designation: '',
@@ -35,7 +35,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
   
   const [loading, setLoading] = useState(false);
   const [gouvernorats, setGouvernorats] = useState<GouvernoratData[]>([]);
-  const [villes, setVilles] = useState<string[]>([]);
+  const [availableVilles, setAvailableVilles] = useState<string[]>([]);
 
   // Fetch gouvernorats on mount
   useEffect(() => {
@@ -43,39 +43,38 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
       try {
         const response = await fetch('/api/colissimo/gouvernorats');
         const result = await response.json();
+        
         if (result.success && result.data) {
-          // Ensure data is an array
-          const data = Array.isArray(result.data) ? result.data : [];
-          setGouvernorats(data);
+          setGouvernorats(result.data);
+          
+          // Set first gouvernorat as default if no colis data
+          if (!colis && result.data.length > 0) {
+            const firstGouv = result.data[0];
+            setFormData(prev => ({
+              ...prev,
+              gouvernorat: firstGouv.gouvernorat
+            }));
+            // Filter out "-" from villes
+            setAvailableVilles(firstGouv.villes.filter((v: string) => v !== '-'));
+          }
         }
-      } catch (err) {
-        console.error('Error fetching gouvernorats:', err);
-        setGouvernorats([]);
+      } catch (error) {
+        console.error('Error fetching gouvernorats:', error);
       }
     };
+
     fetchGouvernorats();
   }, []);
 
-  // Update villes when gouvernorat changes
+  // Update form when editing existing colis
   useEffect(() => {
-    const selectedGouv = gouvernorats.find(g => g.gouvernorat === formData.gouvernorat);
-    if (selectedGouv) {
-      setVilles(selectedGouv.villes || []);
-      // Reset ville if it's not in the new list
-      if (!selectedGouv.villes.includes(formData.ville)) {
-        setFormData(prev => ({ ...prev, ville: '' }));
-      }
-    }
-  }, [formData.gouvernorat, gouvernorats]);
-
-  useEffect(() => {
-    if (colis) {
+    if (colis && gouvernorats.length > 0) {
       setFormData({
         reference: colis.reference || '',
         client: colis.client || '',
         adresse: colis.adresse || '',
         ville: colis.ville || '',
-        gouvernorat: colis.gouvernorat || 'Tunis',
+        gouvernorat: colis.gouvernorat || '',
         tel1: colis.tel1 || '',
         tel2: colis.tel2 || '',
         designation: colis.designation || '',
@@ -87,8 +86,30 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
         cod: colis.cod || 0,
         poids: colis.poids || 0
       });
+      
+      // Set available villes for the colis' gouvernorat
+      const gouvernoratData = gouvernorats.find(g => g.gouvernorat === colis.gouvernorat);
+      if (gouvernoratData) {
+        setAvailableVilles(gouvernoratData.villes.filter(v => v !== '-'));
+      }
     }
-  }, [colis]);
+  }, [colis, gouvernorats]);
+
+  // Update available villes when gouvernorat changes
+  useEffect(() => {
+    if (formData.gouvernorat && gouvernorats.length > 0) {
+      const gouvernoratData = gouvernorats.find(g => g.gouvernorat === formData.gouvernorat);
+      if (gouvernoratData) {
+        const villes = gouvernoratData.villes.filter(v => v !== '-');
+        setAvailableVilles(villes);
+        
+        // Reset ville if it's not in the new list
+        if (formData.ville && !villes.includes(formData.ville)) {
+          setFormData(prev => ({ ...prev, ville: '' }));
+        }
+      }
+    }
+  }, [formData.gouvernorat, gouvernorats]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +130,15 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 card p-8 animate-scaleIn">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn overflow-y-auto"
+      onClick={onCancel}
+    >
+      <form 
+        onSubmit={handleSubmit} 
+        className="space-y-6 card p-8 animate-scaleIn my-8 max-w-4xl w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
       <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-100">
         <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg">
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,14 +210,17 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             required
             className="input cursor-pointer"
           >
-            {Array.isArray(gouvernorats) && gouvernorats.length > 0 ? (
-              gouvernorats.map(gov => (
-                <option key={gov.gouvernorat} value={gov.gouvernorat}>
-                  {gov.gouvernorat}
-                </option>
-              ))
-            ) : (
+            {gouvernorats.length === 0 ? (
               <option value="">Chargement...</option>
+            ) : (
+              <>
+                <option value="">Sélectionner un gouvernorat</option>
+                {gouvernorats.map((gov) => (
+                  <option key={gov.gouvernorat} value={gov.gouvernorat}>
+                    {gov.gouvernorat}
+                  </option>
+                ))}
+              </>
             )}
           </select>
         </div>
@@ -204,14 +236,22 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             onChange={handleChange}
             required
             className="input cursor-pointer"
-            disabled={villes.length === 0}
+            disabled={!formData.gouvernorat || availableVilles.length === 0}
           >
-            <option value="">Sélectionner une ville</option>
-            {villes.map(ville => (
-              <option key={ville} value={ville}>
-                {ville}
-              </option>
-            ))}
+            {!formData.gouvernorat ? (
+              <option value="">Sélectionner d'abord un gouvernorat</option>
+            ) : availableVilles.length === 0 ? (
+              <option value="">Chargement...</option>
+            ) : (
+              <>
+                <option value="">Sélectionner une ville</option>
+                {availableVilles.map((ville) => (
+                  <option key={ville} value={ville}>
+                    {ville}
+                  </option>
+                ))}
+              </>
+            )}
           </select>
         </div>
 
@@ -413,6 +453,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
         </button>
       </div>
     </form>
+    </div>
   );
 }
 

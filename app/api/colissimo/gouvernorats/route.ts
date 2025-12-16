@@ -1,34 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSOAPClient } from '@/lib/soap-client';
 
-// API route to fetch gouvernorats and villes
+/**
+ * API Route: Get list of gouvernorats with their villes
+ * Calls listGouvernorats from Colissimo API
+ */
 export async function GET(request: NextRequest) {
   try {
     const client = await getSOAPClient();
     
-    // Call listGouvernorats
+    // listGouvernorats doesn't take any parameters, authentication is via SOAP headers
     const result = await client.listGouvernoratsAsync({});
     
-    // Parse response
-    let responseData = result[0];
+    // Extract the result from SOAP response
+    const soapResult = result[0];
     
-    // If listGouvernoratsResult is a string, parse it
-    if (responseData.listGouvernoratsResult && typeof responseData.listGouvernoratsResult === 'string') {
-      try {
-        responseData.listGouvernoratsResult = JSON.parse(responseData.listGouvernoratsResult);
-      } catch (e) {
-        console.error('Failed to parse listGouvernoratsResult:', e);
-      }
+    if (!soapResult || !soapResult.listGouvernoratsResult) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid response from SOAP API'
+        },
+        { status: 500 }
+      );
     }
-    
-    let parsedData = responseData.listGouvernoratsResult;
-    
-    // If the result is still a string, parse it again
-    if (typeof parsedData === 'string') {
+
+    // Parse the outer JSON string from listGouvernoratsResult
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(soapResult.listGouvernoratsResult);
+    } catch (parseError) {
+      console.error('Error parsing listGouvernoratsResult:', parseError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to parse API response'
+        },
+        { status: 500 }
+      );
+    }
+
+    if (parsedResult.result_type === 'erreur') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `API Error: ${parsedResult.result_code} - ${parsedResult.result_content}`
+        },
+        { status: 400 }
+      );
+    }
+
+    // Parse the inner result_content JSON string to get the actual gouvernorats array
+    let gouvernorats = [];
+    if (parsedResult.result_content) {
       try {
-        parsedData = JSON.parse(parsedData);
-      } catch (e) {
-        console.error('Failed to parse gouvernorats data:', e);
+        gouvernorats = JSON.parse(parsedResult.result_content);
+      } catch (parseError) {
+        console.error('Error parsing result_content:', parseError);
         return NextResponse.json(
           {
             success: false,
@@ -38,41 +66,10 @@ export async function GET(request: NextRequest) {
         );
       }
     }
-    
-    // Check for errors
-    if (parsedData && parsedData.result_type === 'erreur') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `API Error: ${parsedData.result_code} - ${parsedData.result_content}`
-        },
-        { status: 400 }
-      );
-    }
-    
-    // The data could be directly an array or wrapped in result_content
-    let gouvernoratsData = Array.isArray(parsedData) ? parsedData : (parsedData?.result_content || []);
-    
-    // If result_content is still a string, parse it
-    if (typeof gouvernoratsData === 'string') {
-      try {
-        gouvernoratsData = JSON.parse(gouvernoratsData);
-      } catch (e) {
-        console.error('Failed to parse result_content:', e);
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to parse gouvernorats content'
-          },
-          { status: 500 }
-        );
-      }
-    }
-    
-    // Return the gouvernorats list
+
     return NextResponse.json({
       success: true,
-      data: Array.isArray(gouvernoratsData) ? gouvernoratsData : []
+      data: gouvernorats,
     });
   } catch (error: any) {
     console.error('Error fetching gouvernorats:', error);
@@ -85,5 +82,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 

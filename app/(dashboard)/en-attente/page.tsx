@@ -1,6 +1,6 @@
 import ColisListView from '@/components/ColisListView';
 
 export default function EnAttentePage() {
-  return <ColisListView statusFilter="En Attente" showBulkToggle={true} />;
+  return <ColisListView statusFilter="En Attente" />;
 }
 

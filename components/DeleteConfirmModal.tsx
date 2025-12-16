@@ -14,8 +14,14 @@ export default function DeleteConfirmModal({ colis, onConfirm, onCancel, loading
   if (!colis) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-      <div className="card max-w-md w-full p-6 animate-scaleIn">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+      onClick={onCancel}
+    >
+      <div 
+        className="card max-w-md w-full p-6 animate-scaleIn"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-xl shadow-lg animate-pulse">
