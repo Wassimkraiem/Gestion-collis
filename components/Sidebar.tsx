@@ -28,6 +28,15 @@ const statusConfig = [
     activeBg: 'bg-yellow-100'
   },
   { 
+    key: 'A Enlever', 
+    path: '/a-enlever',
+    label: 'À Enlever', 
+    icon: AlertCircle, 
+    color: 'text-orange-600',
+    bgColor: 'hover:bg-orange-50',
+    activeBg: 'bg-orange-100'
+  },
+  { 
     key: 'En Cours de Livraison', 
     path: '/en-livraison',
     label: 'En Livraison', 
@@ -53,15 +62,6 @@ const statusConfig = [
     color: 'text-purple-600',
     bgColor: 'hover:bg-purple-50',
     activeBg: 'bg-purple-100'
-  },
-  { 
-    key: 'A Enlever', 
-    path: '/a-enlever',
-    label: 'À Enlever', 
-    icon: AlertCircle, 
-    color: 'text-orange-600',
-    bgColor: 'hover:bg-orange-50',
-    activeBg: 'bg-orange-100'
   },
   { 
     key: 'Annulé', 
@@ -134,10 +134,10 @@ export default function Sidebar({ selectedStatus }: SidebarProps) {
   }, []);
 
   return (
-    <aside className="w-64 glass border-r border-gray-200 p-4 space-y-2 overflow-y-auto">
-      <div className="mb-6">
-        <h2 className="text-lg font-bold gradient-text mb-1">Filtres</h2>
-        <p className="text-sm text-gray-500">Par statut</p>
+    <aside className="w-52 lg:w-56 xl:w-64 glass border-r border-gray-200 p-3 lg:p-4 space-y-2 overflow-y-auto flex-shrink-0">
+      <div className="mb-4 lg:mb-6">
+        <h2 className="text-base lg:text-lg font-bold gradient-text mb-1">Filtres</h2>
+        <p className="text-xs lg:text-sm text-gray-500">Par statut</p>
       </div>
 
       <nav className="space-y-1">
@@ -152,24 +152,24 @@ export default function Sidebar({ selectedStatus }: SidebarProps) {
             <Link
               key={status.key}
               href={status.path}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center justify-between px-2.5 lg:px-3 xl:px-4 py-2 lg:py-2.5 xl:py-3 rounded-lg xl:rounded-xl transition-all duration-200 ${
                 isActive 
                   ? `${status.activeBg} shadow-md` 
                   : `${status.bgColor} hover:shadow-sm`
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 lg:gap-2.5 xl:gap-3">
                 <Icon 
-                  size={20} 
-                  className={`${isActive ? status.color : 'text-gray-400'}`}
+                  size={18} 
+                  className={`${isActive ? status.color : 'text-gray-400'} lg:w-5 lg:h-5`}
                 />
-                <span className={`font-medium ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
+                <span className={`text-xs lg:text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
                   {status.label}
                 </span>
               </div>
               
               {count > 0 && (
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                <span className={`px-1.5 lg:px-2 xl:px-2.5 py-0.5 rounded-full text-[10px] lg:text-xs font-semibold ${
                   isActive 
                     ? `${status.color} bg-white` 
                     : 'bg-gray-100 text-gray-600'

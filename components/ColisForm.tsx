@@ -37,6 +37,56 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
   const [gouvernorats, setGouvernorats] = useState<GouvernoratData[]>([]);
   const [availableVilles, setAvailableVilles] = useState<string[]>([]);
 
+  // Check if form has been modified (is "dirty")
+  const isFormDirty = () => {
+    // When editing, we don't consider it dirty at initial state
+    if (colis) {
+      return (
+        formData.reference !== (colis.reference || '') ||
+        formData.client !== (colis.client || '') ||
+        formData.adresse !== (colis.adresse || '') ||
+        formData.ville !== (colis.ville || '') ||
+        formData.gouvernorat !== (colis.gouvernorat || '') ||
+        formData.tel1 !== (colis.tel1 || '') ||
+        formData.tel2 !== (colis.tel2 || '') ||
+        formData.designation !== (colis.designation || '') ||
+        formData.prix !== (colis.prix || 0) ||
+        formData.nb_pieces !== (colis.nb_pieces || 1) ||
+        formData.type !== (colis.type || 'VO') ||
+        formData.commentaire !== (colis.commentaire || '') ||
+        formData.echange !== (colis.echange || 0) ||
+        formData.cod !== (colis.cod || 0) ||
+        formData.poids !== (colis.poids || 0)
+      );
+    }
+    
+    // When adding new, check if any field has been filled
+    return (
+      formData.reference !== '' ||
+      formData.client !== '' ||
+      formData.adresse !== '' ||
+      formData.ville !== '' ||
+      formData.tel1 !== '' ||
+      formData.tel2 !== '' ||
+      formData.designation !== '' ||
+      formData.commentaire !== ''
+    );
+  };
+
+  // Handle backdrop click with dirty check
+  const handleBackdropClick = () => {
+    if (isFormDirty()) {
+      const confirmClose = window.confirm(
+        'Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter sans sauvegarder ?'
+      );
+      if (confirmClose) {
+        onCancel();
+      }
+    } else {
+      onCancel();
+    }
+  };
+
   // Fetch gouvernorats on mount
   useEffect(() => {
     const fetchGouvernorats = async () => {
@@ -111,6 +161,18 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
     }
   }, [formData.gouvernorat, gouvernorats]);
 
+  // Handle ESC key press with dirty check
+  useEffect(() => {
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleBackdropClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+    return () => window.removeEventListener('keydown', handleEscKey);
+  }, [formData, colis]); // Dependencies so ESC handler has latest form state
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -131,29 +193,29 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn overflow-y-auto"
-      onClick={onCancel}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 lg:p-4 animate-fadeIn overflow-y-auto"
+      onClick={handleBackdropClick}
     >
       <form 
         onSubmit={handleSubmit} 
-        className="space-y-6 card p-8 animate-scaleIn my-8 max-w-4xl w-full"
+        className="space-y-4 lg:space-y-6 card p-4 lg:p-6 xl:p-8 animate-scaleIn my-4 lg:my-8 max-w-4xl w-full"
         onClick={(e) => e.stopPropagation()}
       >
-      <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-100">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-2 lg:gap-3 pb-3 lg:pb-4 border-b-2 border-gray-100">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 lg:p-3 rounded-lg lg:rounded-xl shadow-lg">
+          <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold gradient-text">
+        <h2 className="text-lg lg:text-xl xl:text-2xl font-bold gradient-text">
           {colis ? 'Modifier Colis' : 'Ajouter Nouveau Colis'}
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
         {/* Reference */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
             Référence
           </label>
           <input
@@ -161,14 +223,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             name="reference"
             value={formData.reference}
             onChange={handleChange}
-            className="input"
+            className="input text-sm"
             placeholder="Ex: REF-2024-001 (Optionnel)"
           />
         </div>
 
         {/* Client */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
             Client *
           </label>
           <input
@@ -177,14 +239,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.client}
             onChange={handleChange}
             required
-            className="input"
+            className="input text-sm"
             placeholder="Nom complet du client"
           />
         </div>
 
         {/* Adresse */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
             Adresse *
           </label>
           <input
@@ -193,14 +255,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.adresse}
             onChange={handleChange}
             required
-            className="input"
+            className="input text-sm"
             placeholder="Adresse complète de livraison"
           />
         </div>
 
         {/* Gouvernorat */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
             Gouvernorat *
           </label>
           <select
@@ -420,23 +482,23 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
         </div>
       </div>
 
-      <div className="flex gap-3 justify-end pt-4 border-t-2 border-gray-100">
+      <div className="flex gap-2 lg:gap-3 justify-end pt-3 lg:pt-4 border-t-2 border-gray-100">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleBackdropClick}
           disabled={loading}
-          className="btn-secondary"
+          className="btn-secondary text-sm lg:text-base px-4 lg:px-6"
         >
           Annuler
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center gap-1.5 lg:gap-2 text-sm lg:text-base px-4 lg:px-6"
         >
           {loading ? (
             <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 lg:h-5 lg:w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
@@ -444,7 +506,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             </>
           ) : (
             <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span>{colis ? 'Modifier' : 'Ajouter'}</span>

@@ -405,40 +405,42 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
   return (
     <>
       {/* Header Actions */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 lg:mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">
             {statusFilter === 'all' ? 'Tous les colis' : `Colis: ${statusFilter}`}
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-xs lg:text-sm text-gray-600 mt-0.5 lg:mt-1">
             {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-1.5 lg:gap-2 xl:gap-3">
           <button
             onClick={fetchColisList}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-white hover:border-blue-400 hover:shadow-md disabled:opacity-50 transition-all duration-200 font-medium"
+            className="flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 xl:px-5 py-2 lg:py-2.5 border-2 border-gray-300 rounded-lg lg:rounded-xl text-xs lg:text-sm text-gray-700 hover:bg-white hover:border-blue-400 hover:shadow-md disabled:opacity-50 transition-all duration-200 font-medium"
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin text-blue-600' : ''} />
-            Actualiser
+            <RefreshCw size={16} className={`lg:w-[18px] lg:h-[18px] ${loading ? 'animate-spin text-blue-600' : ''}`} />
+            <span className="hidden lg:inline">Actualiser</span>
           </button>
           {statusFilter === 'En Attente' && colisList.length > 0 && (
             <button
               onClick={handleBulkValidate}
               disabled={loading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 transition-all duration-200 font-medium hover:scale-105"
+              className="flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 xl:px-5 py-2 lg:py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg lg:rounded-xl hover:shadow-lg disabled:opacity-50 transition-all duration-200 text-xs lg:text-sm font-medium hover:scale-105"
             >
-              <CheckCircle size={18} />
-              Tout Valider ({colisList.length})
+              <CheckCircle size={16} className="lg:w-[18px] lg:h-[18px]" />
+              <span className="hidden lg:inline">Tout Valider ({colisList.length})</span>
+              <span className="lg:hidden">Valider</span>
             </button>
           )}
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 btn-primary"
+            className="flex items-center gap-1.5 lg:gap-2 btn-primary text-xs lg:text-sm px-3 lg:px-4"
           >
-            <Plus size={18} />
-            Nouveau Colis
+            <Plus size={16} className="lg:w-[18px] lg:h-[18px]" />
+            <span className="hidden lg:inline">Nouveau Colis</span>
+            <span className="lg:hidden">Nouveau</span>
           </button>
         </div>
       </div>

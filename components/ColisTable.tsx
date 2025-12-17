@@ -37,31 +37,31 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Référence
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Client
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider hidden xl:table-cell">
                 Téléphone
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Ville
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">
                 Gouvernorat
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Prix
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider hidden xl:table-cell">
                 Type
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-left text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Statut
               </th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 text-right text-[10px] lg:text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -69,25 +69,25 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
           <tbody className="bg-white divide-y divide-gray-100">
             {safeColisList.map((colis, index) => (
               <tr key={colis.code || colis.id || index} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm font-medium text-gray-900">
                   {colis.reference}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-700">
                   {colis.client}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-700 hidden xl:table-cell">
                   {colis.tel1}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-700">
                   {colis.ville}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-700 hidden lg:table-cell">
                   {colis.gouvernorat}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-700">
                   {colis.prix} TND
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm hidden xl:table-cell">
                   <span className={`badge shadow-sm ${
                     colis.type === 'VO' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
                     colis.type === 'EC' ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' :
@@ -96,7 +96,7 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                     {colis.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-xs lg:text-sm">
                   <span className={`badge shadow-sm ${
                     (colis.etat === 'Livré' || colis.etat === 'livré' || colis.etat === 'Delivered') ? 
                       'bg-gradient-to-r from-green-500 to-emerald-600 text-white' :
@@ -125,55 +125,55 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                     {colis.etat || colis.statut || 'En Attente'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-2">
+                <td className="px-3 lg:px-4 xl:px-6 py-2.5 lg:py-3 xl:py-4 whitespace-nowrap text-right text-xs lg:text-sm font-medium">
+                  <div className="flex justify-end gap-1 lg:gap-1.5 xl:gap-2">
                     <button
                       onClick={() => onView(colis)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                      className="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                       title="Voir détails"
                     >
-                      <Eye size={18} />
+                      <Eye size={16} className="lg:w-[18px] lg:h-[18px]" />
                     </button>
                     {(colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') && onViewDeliveryDetails && (
                       <button
                         onClick={() => onViewDeliveryDetails(colis)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                        className="p-1.5 lg:p-2 text-purple-600 hover:bg-purple-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                         title="Détails de livraison"
                       >
-                        <Truck size={18} />
+                        <Truck size={16} className="lg:w-[18px] lg:h-[18px]" />
                       </button>
                     )}
                     <button
                       onClick={() => onPrint(colis)}
-                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                      className="p-1.5 lg:p-2 text-indigo-600 hover:bg-indigo-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                       title="Imprimer"
                     >
-                      <Printer size={18} />
+                      <Printer size={16} className="lg:w-[18px] lg:h-[18px]" />
                     </button>
                     {colis.etat === 'En Attente' && (
                       <>
                         {onValidate && (
                           <button
                             onClick={() => onValidate(colis)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                            className="p-1.5 lg:p-2 text-emerald-600 hover:bg-emerald-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                             title="Valider pour enlèvement"
                           >
-                            <CheckCircle size={18} />
+                            <CheckCircle size={16} className="lg:w-[18px] lg:h-[18px]" />
                           </button>
                         )}
                         <button
                           onClick={() => onEdit(colis)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                          className="p-1.5 lg:p-2 text-green-600 hover:bg-green-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                           title="Modifier"
                         >
-                          <Pencil size={18} />
+                          <Pencil size={16} className="lg:w-[18px] lg:h-[18px]" />
                         </button>
                         <button
                           onClick={() => onDelete(colis)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                          className="p-1.5 lg:p-2 text-red-600 hover:bg-red-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                           title="Supprimer"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} className="lg:w-[18px] lg:h-[18px]" />
                         </button>
                       </>
                     )}

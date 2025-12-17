@@ -47,29 +47,30 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="glass sticky top-0 z-40 animate-fadeIn">
-          <div className="max-w-full mx-auto px-6 py-4">
+          <div className="max-w-full mx-auto px-3 lg:px-4 xl:px-6 py-3 lg:py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg">
-                  <Package className="text-white" size={28} />
+              <div className="flex items-center gap-2 lg:gap-3">
+                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 lg:p-2 rounded-lg lg:rounded-xl shadow-lg">
+                  <Package className="text-white" size={22} />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold gradient-text">Colissimo Management</h1>
-                  <p className="text-sm text-gray-600">
+                  <h1 className="text-lg lg:text-xl xl:text-2xl font-bold gradient-text">Colissimo Management</h1>
+                  <p className="text-xs lg:text-sm text-gray-600 hidden lg:block">
                     {selectedStatus === 'all' 
                       ? 'Tous les colis' 
                       : `Filtré par: ${selectedStatus}`}
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2 lg:gap-3">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-5 py-2.5 border-2 border-red-300 rounded-xl text-red-700 hover:bg-red-50 hover:border-red-400 hover:shadow-md transition-all duration-200 font-medium"
+                  className="flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 xl:px-5 py-2 lg:py-2.5 border-2 border-red-300 rounded-lg lg:rounded-xl text-red-700 hover:bg-red-50 hover:border-red-400 hover:shadow-md transition-all duration-200 text-sm lg:text-base font-medium"
                   title="Déconnexion"
                 >
-                  <LogOut size={18} />
-                  Déconnexion
+                  <LogOut size={16} className="lg:w-[18px] lg:h-[18px]" />
+                  <span className="hidden lg:inline">Déconnexion</span>
+                  <span className="lg:hidden">Exit</span>
                 </button>
               </div>
             </div>
@@ -77,7 +78,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-6 py-8 overflow-auto animate-fadeIn">
+        <main className="flex-1 px-3 lg:px-4 xl:px-6 py-4 lg:py-6 xl:py-8 overflow-auto animate-fadeIn">
           {children}
         </main>
       </div>
