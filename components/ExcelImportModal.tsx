@@ -60,23 +60,28 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-          const colisList: ColisFormData[] = jsonData.map((row: any) => ({
-            reference: row['Référence'] || row['Reference'] || '',
-            client: row['Client'] || '',
-            adresse: row['Adresse'] || '',
-            gouvernorat: row['Gouvernorat'] || '',
-            ville: row['Ville'] || '',
-            tel1: String(row['Téléphone 1'] || row['Tel1'] || ''),
-            tel2: String(row['Téléphone 2'] || row['Tel2'] || ''),
-            designation: row['Désignation'] || row['Designation'] || '',
-            prix: parseFloat(row['Prix'] || 0),
-            nb_pieces: parseInt(row['Nombre de pièces'] || row['Nb_pieces'] || 1),
-            type: row['Type'] || 'VO',
-            commentaire: row['Commentaire'] || '',
-            echange: parseInt(row['Échange'] || row['Echange'] || 0),
-            cod: parseFloat(row['COD'] || 0),
-            poids: parseFloat(row['Poids'] || 0)
-          }));
+          const colisList: ColisFormData[] = jsonData.map((row: any) => {
+            const echangeValue = parseInt(row['Échange'] || row['Echange'] || 0);
+            const typeValue = (row['Type'] || 'VO').toUpperCase();
+            
+            return {
+              reference: row['Référence'] || row['Reference'] || '',
+              client: row['Client'] || '',
+              adresse: row['Adresse'] || '',
+              gouvernorat: row['Gouvernorat'] || '',
+              ville: row['Ville'] || '',
+              tel1: String(row['Téléphone 1'] || row['Tel1'] || ''),
+              tel2: String(row['Téléphone 2'] || row['Tel2'] || ''),
+              designation: row['Désignation'] || row['Designation'] || '',
+              prix: parseFloat(row['Prix'] || 0),
+              nb_pieces: parseInt(row['Nombre de pièces'] || row['Nb_pieces'] || 1),
+              type: (typeValue === 'VO' || typeValue === 'EC' || typeValue === 'DO' ? typeValue : 'VO') as 'VO' | 'EC' | 'DO',
+              commentaire: row['Commentaire'] || '',
+              echange: (echangeValue === 1 ? 1 : 0) as 0 | 1,
+              cod: parseFloat(row['COD'] || 0),
+              poids: parseFloat(row['Poids'] || 0)
+            };
+          });
 
           // Validate required fields
           const invalidRows = colisList.filter((colis, index) => 
@@ -159,6 +164,23 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
         'Échange': 0,
         'COD': 0,
         'Poids': 0.5
+      },
+      {
+        'Référence': 'REF-002',
+        'Client': 'Ahmed Ben Ali',
+        'Adresse': '25 Avenue Habib Bourguiba',
+        'Gouvernorat': 'Sfax',
+        'Ville': 'Sfax Ville',
+        'Téléphone 1': '74222333',
+        'Téléphone 2': '',
+        'Désignation': 'Livres',
+        'Prix': 35,
+        'Nombre de pièces': 2,
+        'Type': 'EC',
+        'Commentaire': '',
+        'Échange': 1,
+        'COD': 10,
+        'Poids': 1.2
       }
     ];
 
@@ -205,6 +227,9 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
             <Download size={16} className="lg:w-[18px] lg:h-[18px]" />
             Télécharger le modèle Excel
           </button>
+          <p className="text-xs text-gray-600 mt-2">
+            Type: VO (Vente Ordinaire), EC (Échange), DO (Dossier) • Échange: 0 (Non) ou 1 (Oui)
+          </p>
         </div>
 
         {/* File Upload */}
