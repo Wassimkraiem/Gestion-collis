@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, CheckCircle } from 'lucide-react';
+import { Plus, RefreshCw, CheckCircle, FileUp } from 'lucide-react';
 import { Colis, ColisFormData } from '@/types/colissimo';
 import ColisTable from '@/components/ColisTable';
 import ColisForm from '@/components/ColisForm';
@@ -9,6 +9,7 @@ import SearchBar from '@/components/SearchBar';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import ColisDetailModal from '@/components/ColisDetailModal';
 import DeliveryDetailsModal from '@/components/DeliveryDetailsModal';
+import ExcelImportModal from '@/components/ExcelImportModal';
 import { parseColisResponse } from '@/lib/parse-soap-response';
 
 interface ColisListViewProps {
@@ -22,6 +23,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
   const [colisList, setColisList] = useState<Colis[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [selectedColis, setSelectedColis] = useState<Colis | null>(null);
   const [colisToDelete, setColisToDelete] = useState<Colis | null>(null);
   const [colisToView, setColisToView] = useState<Colis | null>(null);
@@ -435,6 +437,14 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             </button>
           )}
           <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 xl:px-5 py-2 lg:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg lg:rounded-xl hover:shadow-lg transition-all duration-200 text-xs lg:text-sm font-medium hover:scale-105"
+          >
+            <FileUp size={16} className="lg:w-[18px] lg:h-[18px]" />
+            <span className="hidden lg:inline">Importer</span>
+            <span className="lg:hidden">Import</span>
+          </button>
+          <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 lg:gap-2 btn-primary text-xs lg:text-sm px-3 lg:px-4"
           >
@@ -590,6 +600,17 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         <DeliveryDetailsModal
           colis={colisForDeliveryDetails}
           onClose={() => setColisForDeliveryDetails(null)}
+        />
+      )}
+
+      {showImportModal && (
+        <ExcelImportModal
+          onClose={() => setShowImportModal(false)}
+          onImportSuccess={() => {
+            setShowImportModal(false);
+            setSuccess('Import réussi! Rafraîchissement des données...');
+            fetchColisList();
+          }}
         />
       )}
     </>
