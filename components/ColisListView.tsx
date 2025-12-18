@@ -289,7 +289,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         
         // If there's a PDF link, open it
         if (result.pdfUrl) {
-          window.open(result.pdfUrl, '_blank');
+          setTimeout(() => {
+            window.open(result.pdfUrl, '_blank');
+          }, 3000); // Wait 5 seconds
         }
         
         await fetchColisList();
@@ -335,7 +337,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         
         // If there's a PDF link, open it
         if (result.pdfUrl) {
-          window.open(result.pdfUrl, '_blank');
+          setTimeout(() => {
+            window.open(result.pdfUrl, '_blank');
+          }, 3000); // Wait 5 seconds
         }
         
         await fetchColisList();
@@ -615,5 +619,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
       )}
     </>
   );
+}
+
+function sleep(arg0: number) {
+  throw new Error('Function not implemented.');
 }
 
