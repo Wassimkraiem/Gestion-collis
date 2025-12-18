@@ -65,18 +65,18 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
             const typeValue = (row['Type'] || 'VO').toUpperCase();
             
             return {
-              reference: row['Référence'] || row['Reference'] || '',
+              reference: row['Référence'] || row['Reference'] || row['Ref'] || '',
               client: row['Client'] || '',
-              adresse: row['Adresse'] || '',
+              adresse: row['Adresse'] || row['Adresse complète'] || '',
               gouvernorat: row['Gouvernorat'] || '',
               ville: row['Ville'] || '',
-              tel1: String(row['Téléphone 1'] || row['Tel1'] || ''),
+              tel1: String(row['Téléphone'] || row['Téléphone 1'] || row['Tel1'] || row['Tel'] || ''),
               tel2: String(row['Téléphone 2'] || row['Tel2'] || ''),
-              designation: row['Désignation'] || row['Designation'] || '',
+              designation: row['Désignation'] || row['Designation'] || row['Article'] || '',
               prix: parseFloat(row['Prix'] || 0),
-              nb_pieces: parseInt(row['Nombre de pièces'] || row['Nb_pieces'] || 1),
+              nb_pieces: parseInt(row['Nb pièces'] || row['Nb pieces'] || row['Nombre de pièces'] || row['Nb_pieces'] || 1),
               type: (typeValue === 'VO' || typeValue === 'EC' || typeValue === 'DO' ? typeValue : 'VO') as 'VO' | 'EC' | 'DO',
-              commentaire: row['Commentaire'] || '',
+              commentaire: row['Commentaire'] || row['Notes'] || '',
               echange: (echangeValue === 1 ? 1 : 0) as 0 | 1,
               cod: parseFloat(row['COD'] || 0),
               poids: parseFloat(row['Poids'] || 0)
@@ -89,7 +89,7 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
           );
 
           if (invalidRows.length > 0) {
-            reject(new Error(`${invalidRows.length} ligne(s) avec des champs obligatoires manquants (Client, Adresse, Gouvernorat, Ville, Téléphone 1)`));
+            reject(new Error(`${invalidRows.length} ligne(s) avec des champs obligatoires manquants (Client, Adresse, Gouvernorat, Ville, Téléphone)`));
             return;
           }
 
@@ -149,38 +149,43 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
   const downloadTemplate = () => {
     const template = [
       {
-        'Référence': 'REF-001',
-        'Client': 'Mohamed Salah',
-        'Adresse': '12 Rue de la République',
-        'Gouvernorat': 'Tunis',
-        'Ville': 'Tunis',
-        'Téléphone 1': '22582700',
-        'Téléphone 2': '22555556',
-        'Désignation': 'Article test',
-        'Prix': 50.5,
-        'Nombre de pièces': 1,
+        'Client': 'Brahim Helali',
+        'Adresse': '40 rue Marsa Le Bardo Tunis',
+        'Gouvernorat': 'La Manouba',
+        'Ville': 'Mannouba',
+        'Téléphone': '24234768',
+        'Nb pièces': 1,
+        'Prix': 388,
+        'Désignation': 'Barnous Blanc 178/100',
+        'Commentaire': 'msafer le 27/12/2025',
         'Type': 'VO',
-        'Commentaire': 'À livrer le matin',
-        'Échange': 0,
-        'COD': 0,
-        'Poids': 0.5
+        'Échange': 0
       },
       {
-        'Référence': 'REF-002',
-        'Client': 'Ahmed Ben Ali',
-        'Adresse': '25 Avenue Habib Bourguiba',
-        'Gouvernorat': 'Sfax',
-        'Ville': 'Sfax Ville',
-        'Téléphone 1': '74222333',
-        'Téléphone 2': '',
-        'Désignation': 'Livres',
-        'Prix': 35,
-        'Nombre de pièces': 2,
-        'Type': 'EC',
+        'Client': 'Wael Ben khater',
+        'Adresse': 'Djerba Midoun',
+        'Gouvernorat': 'Médenine',
+        'Ville': 'Midoun',
+        'Téléphone': '58015609',
+        'Nb pièces': 1,
+        'Prix': 157,
+        'Désignation': 'Kachabia UNI Unis 19/760',
         'Commentaire': '',
-        'Échange': 1,
-        'COD': 10,
-        'Poids': 1.2
+        'Type': 'VO',
+        'Échange': 0
+      },
+      {
+        'Client': 'Othmen Hemra',
+        'Adresse': '95 Avenue de la république El alia Bizerte',
+        'Gouvernorat': 'Bizerte',
+        'Ville': 'El Alia',
+        'Téléphone': '25566822',
+        'Nb pièces': 1,
+        'Prix': 157,
+        'Désignation': 'Kachabia UNI Achkham Foncée 160cm/59kg',
+        'Commentaire': '',
+        'Type': 'VO',
+        'Échange': 0
       }
     ];
 
@@ -228,7 +233,7 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
             Télécharger le modèle Excel
           </button>
           <p className="text-xs text-gray-600 mt-2">
-            Type: VO (Vente Ordinaire), EC (Échange), DO (Dossier) • Échange: 0 (Non) ou 1 (Oui)
+            Colonnes: Client, Adresse, Gouvernorat, Ville, Téléphone, Nb pièces, Prix, Désignation, Commentaire, Type (VO/EC/DO), Échange (0/1)
           </p>
         </div>
 
@@ -248,9 +253,12 @@ export default function ExcelImportModal({ onClose, onImportSuccess }: ExcelImpo
           >
             <Upload className="mx-auto text-gray-400 mb-3" size={40} />
             <p className="text-sm lg:text-base text-gray-700 font-medium mb-1">
-              {file ? file.name : 'Cliquez pour sélectionner un fichier'}
+              {file ? file.name : 'Cliquez pour sélectionner un fichier Excel'}
             </p>
             <p className="text-xs lg:text-sm text-gray-500">
+              Format: Client, Adresse, Gouvernorat, Ville, Téléphone, Nb pièces, Prix, Désignation
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
               Maximum 50 colis par import
             </p>
           </div>

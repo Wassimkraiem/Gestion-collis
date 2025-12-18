@@ -193,29 +193,29 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 lg:p-4 animate-fadeIn overflow-y-auto"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-3 lg:p-4 animate-fadeIn overflow-y-auto"
       onClick={handleBackdropClick}
     >
       <form 
         onSubmit={handleSubmit} 
-        className="space-y-4 lg:space-y-6 card p-4 lg:p-6 xl:p-8 animate-scaleIn my-4 lg:my-8 max-w-4xl w-full"
+        className="space-y-3 sm:space-y-4 lg:space-y-5 card p-3 sm:p-4 lg:p-5 xl:p-6 animate-scaleIn my-2 sm:my-4 lg:my-6 max-w-5xl w-full"
         onClick={(e) => e.stopPropagation()}
       >
-      <div className="flex items-center gap-2 lg:gap-3 pb-3 lg:pb-4 border-b-2 border-gray-100">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 lg:p-3 rounded-lg lg:rounded-xl shadow-lg">
-          <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-2 lg:gap-3 pb-2 sm:pb-3 lg:pb-4 border-b-2 border-gray-100">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-1.5 sm:p-2 lg:p-2.5 rounded-lg lg:rounded-xl shadow-lg">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h2 className="text-lg lg:text-xl xl:text-2xl font-bold gradient-text">
+        <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold gradient-text">
           {colis ? 'Modifier Colis' : 'Ajouter Nouveau Colis'}
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
         {/* Reference */}
         <div>
-          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Référence
           </label>
           <input
@@ -223,14 +223,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             name="reference"
             value={formData.reference}
             onChange={handleChange}
-            className="input text-sm"
-            placeholder="Ex: REF-2024-001 (Optionnel)"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
+            placeholder="Ex: REF-2024-001"
           />
         </div>
 
         {/* Client */}
         <div>
-          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Client *
           </label>
           <input
@@ -239,14 +239,30 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.client}
             onChange={handleChange}
             required
-            className="input text-sm"
-            placeholder="Nom complet du client"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
+            placeholder="Nom complet"
+          />
+        </div>
+
+        {/* Tel1 */}
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
+            Téléphone 1 *
+          </label>
+          <input
+            type="tel"
+            name="tel1"
+            value={formData.tel1}
+            onChange={handleChange}
+            required
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
+            placeholder="Ex: 22123456"
           />
         </div>
 
         {/* Adresse */}
-        <div className="md:col-span-2">
-          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
+        <div className="md:col-span-2 lg:col-span-3">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Adresse *
           </label>
           <input
@@ -255,14 +271,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.adresse}
             onChange={handleChange}
             required
-            className="input text-sm"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="Adresse complète de livraison"
           />
         </div>
 
         {/* Gouvernorat */}
         <div>
-          <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1.5 lg:mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Gouvernorat *
           </label>
           <select
@@ -270,7 +286,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.gouvernorat}
             onChange={handleChange}
             required
-            className="input cursor-pointer"
+            className="input cursor-pointer text-xs sm:text-sm py-1.5 sm:py-2"
           >
             {gouvernorats.length === 0 ? (
               <option value="">Chargement...</option>
@@ -289,7 +305,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
 
         {/* Ville */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Ville *
           </label>
           <select
@@ -297,7 +313,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.ville}
             onChange={handleChange}
             required
-            className="input cursor-pointer"
+            className="input cursor-pointer text-xs sm:text-sm py-1.5 sm:py-2"
             disabled={!formData.gouvernorat || availableVilles.length === 0}
           >
             {!formData.gouvernorat ? (
@@ -317,25 +333,9 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
           </select>
         </div>
 
-        {/* Tel1 */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Téléphone 1 *
-          </label>
-          <input
-            type="tel"
-            name="tel1"
-            value={formData.tel1}
-            onChange={handleChange}
-            required
-            className="input"
-            placeholder="Ex: 22123456"
-          />
-        </div>
-
         {/* Tel2 */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Téléphone 2
           </label>
           <input
@@ -343,14 +343,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             name="tel2"
             value={formData.tel2}
             onChange={handleChange}
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="Optionnel"
           />
         </div>
 
         {/* Designation */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <div className="lg:col-span-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Désignation *
           </label>
           <input
@@ -359,14 +359,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.designation}
             onChange={handleChange}
             required
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="Description des articles"
           />
         </div>
 
         {/* Prix */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Prix (TND) *
           </label>
           <input
@@ -376,14 +376,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             onChange={handleChange}
             step="0.01"
             required
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="0.00"
           />
         </div>
 
         {/* Nombre de pieces */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Nombre de Pièces *
           </label>
           <input
@@ -393,14 +393,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             onChange={handleChange}
             min="1"
             required
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="1"
           />
         </div>
 
         {/* Type */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Type *
           </label>
           <select
@@ -408,7 +408,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.type}
             onChange={handleChange}
             required
-            className="input cursor-pointer"
+            className="input cursor-pointer text-xs sm:text-sm py-1.5 sm:py-2"
           >
             <option value="VO">📦 VO - Vente en ligne</option>
             <option value="EC">🔄 EC - Échange</option>
@@ -418,14 +418,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
 
         {/* Echange */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Échange
           </label>
           <select
             name="echange"
             value={formData.echange}
             onChange={handleChange}
-            className="input cursor-pointer"
+            className="input cursor-pointer text-xs sm:text-sm py-1.5 sm:py-2"
           >
             <option value={0}>❌ Non</option>
             <option value={1}>✅ Oui</option>
@@ -434,7 +434,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
 
         {/* COD */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             COD (TND)
           </label>
           <input
@@ -444,14 +444,14 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             onChange={handleChange}
             step="0.01"
             min="0"
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="0.00"
           />
         </div>
 
         {/* Poids */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Poids (kg)
           </label>
           <input
@@ -461,44 +461,44 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             onChange={handleChange}
             step="0.01"
             min="0"
-            className="input"
+            className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="0.00"
           />
         </div>
 
         {/* Commentaire */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <div className="md:col-span-2 lg:col-span-3">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-1.5">
             Commentaire
           </label>
           <textarea
             name="commentaire"
             value={formData.commentaire}
             onChange={handleChange}
-            rows={3}
-            className="input resize-none"
+            rows={2}
+            className="input resize-none text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="Notes supplémentaires..."
           />
         </div>
       </div>
 
-      <div className="flex gap-2 lg:gap-3 justify-end pt-3 lg:pt-4 border-t-2 border-gray-100">
+      <div className="flex gap-2 sm:gap-3 justify-end pt-2 sm:pt-3 lg:pt-4 border-t-2 border-gray-100">
         <button
           type="button"
           onClick={handleBackdropClick}
           disabled={loading}
-          className="btn-secondary text-sm lg:text-base px-4 lg:px-6"
+          className="btn-secondary text-xs sm:text-sm lg:text-base px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2"
         >
           Annuler
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary flex items-center gap-1.5 lg:gap-2 text-sm lg:text-base px-4 lg:px-6"
+          className="btn-primary flex items-center gap-1 sm:gap-1.5 lg:gap-2 text-xs sm:text-sm lg:text-base px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2"
         >
           {loading ? (
             <>
-              <svg className="animate-spin h-4 w-4 lg:h-5 lg:w-5" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
@@ -506,7 +506,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             </>
           ) : (
             <>
-              <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:w-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span>{colis ? 'Modifier' : 'Ajouter'}</span>
@@ -518,4 +518,3 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
     </div>
   );
 }
-
