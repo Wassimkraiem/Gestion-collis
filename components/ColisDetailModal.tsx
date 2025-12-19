@@ -20,7 +20,7 @@ export default function ColisDetailModal({ colis, onClose }: ColisDetailModalPro
       }
 
       // Only fetch for anomaly colis
-      if (enrichedColis.etat !== 'Anomalie de Livraison') {
+      if (enrichedColis.etat !== 'Anomalie de Livraison' && enrichedColis.etat !== 'Retour Dépôt') {
         setEnrichedColis(colis);
         return;
       }
@@ -36,8 +36,9 @@ export default function ColisDetailModal({ colis, onClose }: ColisDetailModalPro
         });
         
         const result = await response.json();
-        
+        console.log("result", result);
         if (result.success && result.data[enrichedColis.code]) {
+          console.log("result.data[enrichedColis.code]", result.data[enrichedColis.code]);
           // Merge enriched data with existing colis data
           setEnrichedColis({
             ...colis,
@@ -58,7 +59,6 @@ export default function ColisDetailModal({ colis, onClose }: ColisDetailModalPro
   }, [colis]);
 
   if (!colis) return null;
-
   return (
     <div 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
@@ -215,11 +215,11 @@ export default function ColisDetailModal({ colis, onClose }: ColisDetailModalPro
           </div>
 
           {/* Cause Section - for Anomaly */}
-          {enrichedColis.etat === 'Anomalie de Livraison' && (
+          {(enrichedColis.etat === 'Anomalie de Livraison' || enrichedColis.etat === 'Retour Dépôt') && (
             <div className="bg-gradient-to-br from-rose-50 to-red-50 rounded-xl p-6 border-2 border-rose-400 shadow-lg">
               <h4 className="flex items-center gap-2 text-2xl font-bold text-red-800 mb-4">
                 <AlertTriangle size={24} className="text-red-600" />
-                ⚠️ Cause de l'Anomalie
+                ⚠️ {enrichedColis.etat === 'Anomalie de Livraison' ? 'Cause de l\'Anomalie' : 'Raison du Retour au Dépôt'}
               </h4>
               {loading ? (
                 <div className="bg-white border-2 border-red-300 p-5 rounded-lg">
