@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Plus, RefreshCw, Package, LogOut } from 'lucide-react';
+import { Package, LogOut } from 'lucide-react';
 import { clearAuthSession } from '@/lib/auth';
 import Sidebar from '@/components/Sidebar';
 
@@ -39,7 +38,7 @@ export default function DashboardLayout({
   const selectedStatus = getStatusFromPath();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <Sidebar selectedStatus={selectedStatus} />
 
@@ -50,14 +49,14 @@ export default function DashboardLayout({
           <div className="max-w-full mx-auto px-3 lg:px-4 xl:px-6 py-3 lg:py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 lg:gap-3">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 lg:p-2 rounded-lg lg:rounded-xl shadow-lg">
+                <div className="bg-linear-to-br from-blue-600 to-indigo-600 p-1.5 lg:p-2 rounded-lg lg:rounded-xl shadow-lg">
                   <Package className="text-white" size={22} />
                 </div>
                 <div>
                   <h1 className="text-lg lg:text-xl xl:text-2xl font-bold gradient-text">Colissimo Management</h1>
                   <p className="text-xs lg:text-sm text-gray-600 hidden lg:block">
-                    {selectedStatus === 'all' 
-                      ? 'Tous les colis' 
+                    {selectedStatus === 'all'
+                      ? 'Tous les colis'
                       : `Filtré par: ${selectedStatus}`}
                   </p>
                 </div>
@@ -78,7 +77,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-3 lg:px-4 xl:px-6 py-4 lg:py-6 xl:py-8 overflow-auto animate-fadeIn">
+        <main className="flex-1 px-3 lg:px-4 xl:px-6 py-4 lg:py-6 xl:py-8 overflow-auto ">
           {children}
         </main>
       </div>

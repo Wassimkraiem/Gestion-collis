@@ -59,7 +59,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
       // First, get the first page to know total pages
       const firstResponse = await fetch(`/api/colissimo/list?page=1`);
       const firstResult = await firstResponse.json();
-      
+
       if (!firstResult.success) {
         setError(firstResult.error || 'Failed to fetch colis list');
         setColisList([]);
@@ -69,7 +69,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
       const firstData = firstResult.data;
       let allColis = parseColisResponse(firstData);
-      
+
       // Get total pages
       let totalPagesCount = 1;
       if (firstData.ListeColisResult && firstData.ListeColisResult.result_content) {
@@ -78,7 +78,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         setTotalPages(totalPagesCount);
         setTotalColis(parseInt(content.nbColis) || 0);
       }
-      
+
       // Fetch all remaining pages to get ALL colis
       console.log(`Fetching all ${totalPagesCount} pages to get complete data...`);
       const fetchPromises = [];
@@ -94,19 +94,19 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             })
         );
       }
-      
+
       // Wait for all pages to load
       const allPages = await Promise.all(fetchPromises);
       allPages.forEach(pageColis => {
         allColis = [...allColis, ...pageColis];
       });
-      
+
       console.log(`Loaded ${allColis.length} total colis from ${totalPagesCount} pages`);
-      
+
       // Set the colis list directly
       // Enrichment will happen on-demand when opening DeliveryDetailsModal or ColisDetailModal
       setAllColisList(allColis);
-      
+
     } catch (err: any) {
       setError(err.message || 'Failed to fetch colis list');
       console.error('Error fetching colis:', err);
@@ -135,10 +135,10 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setLoading(true);
     setError(null);
     try {
-      let baseList = statusFilter === 'all' 
-        ? allColisList 
+      let baseList = statusFilter === 'all'
+        ? allColisList
         : allColisList.filter(colis => colis.etat === statusFilter);
-      
+
       const searchQuery = query.toLowerCase();
       const filtered = baseList.filter(colis => {
         switch (type) {
@@ -165,7 +165,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             );
         }
       });
-      
+
       setColisList(filtered);
       setCurrentPage(1);
     } catch (err: any) {
@@ -186,9 +186,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess('Colis ajouté avec succès');
         setShowForm(false);
@@ -207,7 +207,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   const handleUpdateColis = async (data: ColisFormData) => {
     if (!selectedColis) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -216,9 +216,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, id: selectedColis.code }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess('Colis modifié avec succès');
         setShowForm(false);
@@ -238,16 +238,16 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   const handleDeleteColis = async () => {
     if (!colisToDelete) return;
-    
+
     setDeleteLoading(true);
     setError(null);
     try {
       const response = await fetch(`/api/colissimo/delete?id=${colisToDelete.code}`, {
         method: 'DELETE',
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess('Colis supprimé avec succès');
         setColisToDelete(null);
@@ -266,13 +266,13 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   const handleValidate = async (colis: Colis) => {
     if (!colis || colis.etat !== 'En Attente') return;
-    
+
     const confirmed = window.confirm(
       `Voulez-vous valider ce colis pour l'enlèvement ?\n\nRéférence: ${colis.reference}\nClient: ${colis.client}`
     );
-    
+
     if (!confirmed) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -281,19 +281,19 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ codeBar: colis.code }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess('Colis validé avec succès !');
-        
+
         // If there's a PDF link, open it
         if (result.pdfUrl) {
           setTimeout(() => {
             window.open(result.pdfUrl, '_blank');
           }, 3000); // Wait 5 seconds
         }
-        
+
         await fetchColisList();
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -309,18 +309,18 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
   const handleBulkValidate = async () => {
     const enAttenteCount = colisList.filter(c => c.etat === 'En Attente').length;
-    
+
     if (enAttenteCount === 0) {
       setError('Aucun colis en attente à valider');
       return;
     }
-    
+
     const confirmed = window.confirm(
       `Voulez-vous valider tous les ${enAttenteCount} colis en attente pour l'enlèvement ?\n\nCette action validera le manifeste complet.`
     );
-    
+
     if (!confirmed) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -329,19 +329,19 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bulk: true }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess(`${enAttenteCount} colis validés avec succès !`);
-        
+
         // If there's a PDF link, open it
         if (result.pdfUrl) {
           setTimeout(() => {
             window.open(result.pdfUrl, '_blank');
           }, 3000); // Wait 5 seconds
         }
-        
+
         await fetchColisList();
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -375,7 +375,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
       // Fetch PDF from API
       const response = await fetch(`/api/colissimo/pdf?id=${colis.code}`);
       const result = await response.json();
-      
+
       if (result.success && result.pdf) {
         // Convert base64 to blob and open in new window
         const base64Data = result.pdf;
@@ -386,7 +386,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         }
         const blob = new Blob([bytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
-        
+
         // Open PDF in new window
         const printWindow = window.open(url, '_blank');
         if (printWindow) {
@@ -394,7 +394,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             printWindow.print();
           };
         }
-        
+
         // Clean up the URL after a delay
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else {
@@ -411,8 +411,8 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
   return (
     <>
       {/* Header Actions */}
-      <div className="flex items-center justify-between mb-4 lg:mb-6">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 lg:mb-6">
+        <div className="min-w-0">
           <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">
             {statusFilter === 'all' ? 'Tous les colis' : `Colis: ${statusFilter}`}
           </h2>
@@ -420,7 +420,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
             {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`}
           </p>
         </div>
-        <div className="flex gap-1.5 lg:gap-2 xl:gap-3">
+        <div className="flex flex-wrap justify-end gap-1.5 lg:gap-2 xl:gap-3">
           <button
             onClick={fetchColisList}
             disabled={loading}
@@ -466,7 +466,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 font-bold text-xl">×</button>
         </div>
       )}
-      
+
       {success && (
         <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-100 border-l-4 border-green-500 rounded-xl text-green-800 shadow-lg animate-slideIn flex items-start gap-3">
           <div className="flex-1 font-medium">{success}</div>
@@ -488,28 +488,28 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
       {/* Table */}
       <>
-          {loading ? (
-            <div className="card text-center py-20 animate-scaleIn">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20"></div>
-                <RefreshCw className="animate-spin mx-auto text-blue-600 relative" size={56} />
-              </div>
-              <p className="mt-6 text-gray-600 text-lg font-medium">Chargement des données...</p>
+        {loading ? (
+          <div className="card text-center py-20 animate-scaleIn">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20"></div>
+              <RefreshCw className="animate-spin mx-auto text-blue-600 relative" size={56} />
             </div>
-          ) : (
-            <div className="animate-fadeIn">
-              <ColisTable
-                colisList={paginatedColisList}
-                onEdit={handleEdit}
-                onDelete={setColisToDelete}
-                onView={setColisToView}
-                onViewDeliveryDetails={handleViewDeliveryDetails}
-                onPrint={handlePrint}
-                onValidate={handleValidate}
-              />
-            </div>
-          )}
-        </>
+            <p className="mt-6 text-gray-600 text-lg font-medium">Chargement des données...</p>
+          </div>
+        ) : (
+          <div className="animate-fadeIn">
+            <ColisTable
+              colisList={paginatedColisList}
+              onEdit={handleEdit}
+              onDelete={setColisToDelete}
+              onView={setColisToView}
+              onViewDeliveryDetails={handleViewDeliveryDetails}
+              onPrint={handlePrint}
+              onValidate={handleValidate}
+            />
+          </div>
+        )}
+      </>
 
       {/* Pagination */}
       {!loading && totalPaginationPages > 1 && (
@@ -521,7 +521,7 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           >
             ← Précédent
           </button>
-          
+
           <div className="flex items-center gap-2">
             {Array.from({ length: Math.min(7, totalPaginationPages) }, (_, i) => {
               // Show first page, last page, current page, and pages around current
@@ -539,27 +539,26 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
                 else if (i === 6) pageNum = totalPaginationPages;
                 else pageNum = currentPage + i - 3;
               }
-              
+
               if (pageNum === -1) {
                 return <span key={i} className="px-2 text-gray-500">...</span>;
               }
-              
+
               return (
                 <button
                   key={i}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    currentPage === pageNum
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${currentPage === pageNum
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-110'
                       : 'border-2 border-gray-300 text-gray-700 hover:bg-blue-50 hover:border-blue-400'
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
               );
             })}
           </div>
-          
+
           <button
             onClick={() => setCurrentPage(Math.min(totalPaginationPages, currentPage + 1))}
             disabled={currentPage === totalPaginationPages}

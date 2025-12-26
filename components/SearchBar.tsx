@@ -23,20 +23,24 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 animate-fadeIn">
+    <form onSubmit={handleSubmit} className="mb-8 ">
       <div className="card p-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="relative group md:col-span-6">
+            
+            <Search
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"
+              size={20}
+            />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher un colis..."
-              className="input pl-12 text-base w-full"
+              className="input pl-14 text-base w-full"
             />
-            <Search className="absolute left-4 top-3 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
           </div>
-          
+
           <select
             value={searchType}
             onChange={(e) => setSearchType(e.target.value)}
