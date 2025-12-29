@@ -375,6 +375,7 @@ export default function ColisForm({ colis, onSubmit, onCancel }: ColisFormProps)
             value={formData.prix}
             onChange={handleChange}
             step="0.01"
+            min="0"
             required
             className="input text-xs sm:text-sm py-1.5 sm:py-2"
             placeholder="0.00"

@@ -1,7 +1,7 @@
 'use client';
 
 import { Colis } from '@/types/colissimo';
-import { Pencil, Trash2, Eye, Truck, Printer, CheckCircle } from 'lucide-react';
+import { Pencil, Trash2, Eye, Truck, Printer } from 'lucide-react';
 
 interface ColisTableProps {
   colisList: Colis[];
@@ -138,7 +138,7 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                 <span>Détails</span>
               </button>
 
-              {(colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') &&
+              {((colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') || colis.etat === 'Anomalie de Livraison') &&
                 onViewDeliveryDetails && (
                   <button
                     onClick={() => onViewDeliveryDetails(colis)}
@@ -159,15 +159,6 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
 
               {colis.etat === 'En Attente' && (
                 <>
-                  {onValidate && (
-                    <button
-                      onClick={() => onValidate(colis)}
-                      className="px-2.5 py-1.5 text-[11px] flex items-center gap-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all duration-200"
-                    >
-                      <CheckCircle size={14} />
-                      <span>Valider</span>
-                    </button>
-                  )}
                   <button
                     onClick={() => onEdit(colis)}
                     className="px-2.5 py-1.5 text-[11px] flex items-center gap-1 rounded-md bg-green-50 text-green-700 hover:bg-green-100 transition-all duration-200"
@@ -299,7 +290,7 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                       >
                         <Eye size={16} className="lg:w-[18px] lg:h-[18px]" />
                       </button>
-                      {(colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') &&
+                      {((colis.etat === 'En Cours de Livraison' || colis.etat === 'En cours') || colis.etat === 'Anomalie de Livraison') &&
                         onViewDeliveryDetails && (
                           <button
                             onClick={() => onViewDeliveryDetails(colis)}
@@ -318,15 +309,6 @@ export default function ColisTable({ colisList, onEdit, onDelete, onView, onView
                       </button>
                       {colis.etat === 'En Attente' && (
                         <>
-                          {onValidate && (
-                            <button
-                              onClick={() => onValidate(colis)}
-                              className="p-1.5 lg:p-2 text-emerald-600 hover:bg-emerald-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-                              title="Valider pour enlèvement"
-                            >
-                              <CheckCircle size={16} className="lg:w-[18px] lg:h-[18px]" />
-                            </button>
-                          )}
                           <button
                             onClick={() => onEdit(colis)}
                             className="p-1.5 lg:p-2 text-green-600 hover:bg-green-50 rounded-md lg:rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"

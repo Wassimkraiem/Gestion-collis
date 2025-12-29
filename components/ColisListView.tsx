@@ -125,8 +125,9 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     }
   };
 
-  const handleSearch = async (query: string, type: string) => {
-    if (!query.trim()) {
+  const handleSearch = async (query: string, type: string, startDate?: string, endDate?: string) => {
+    // If no query and no date filters, reset to status filter
+    if (!query.trim() && !startDate && !endDate) {
       filterByStatus(allColisList, statusFilter);
       setCurrentPage(1);
       return;
@@ -139,32 +140,66 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         ? allColisList
         : allColisList.filter(colis => colis.etat === statusFilter);
 
-      const searchQuery = query.toLowerCase();
-      const filtered = baseList.filter(colis => {
-        switch (type) {
-          case 'reference':
-            return colis.reference?.toLowerCase().includes(searchQuery);
-          case 'client':
-            return colis.client?.toLowerCase().includes(searchQuery);
-          case 'tel':
-            return colis.tel1?.includes(query) || colis.tel2?.includes(query);
-          case 'numero':
-            return colis.numero_colis?.toLowerCase().includes(searchQuery) || colis.code?.toLowerCase().includes(searchQuery);
-          case 'all':
-          default:
-            return (
-              colis.reference?.toLowerCase().includes(searchQuery) ||
-              colis.client?.toLowerCase().includes(searchQuery) ||
-              colis.tel1?.includes(query) ||
-              colis.tel2?.includes(query) ||
-              colis.ville?.toLowerCase().includes(searchQuery) ||
-              colis.gouvernorat?.toLowerCase().includes(searchQuery) ||
-              colis.numero_colis?.toLowerCase().includes(searchQuery) ||
-              colis.code?.toLowerCase().includes(searchQuery) ||
-              colis.designation?.toLowerCase().includes(searchQuery)
-            );
-        }
-      });
+      // Apply text search filter
+      let filtered = baseList;
+      if (query.trim()) {
+        const searchQuery = query.toLowerCase();
+        filtered = baseList.filter(colis => {
+          switch (type) {
+            case 'reference':
+              return colis.reference?.toLowerCase().includes(searchQuery);
+            case 'client':
+              return colis.client?.toLowerCase().includes(searchQuery);
+            case 'tel':
+              return colis.tel1?.includes(query) || colis.tel2?.includes(query);
+            case 'numero':
+              return colis.numero_colis?.toLowerCase().includes(searchQuery) || colis.code?.toLowerCase().includes(searchQuery);
+            case 'all':
+            default:
+              return (
+                colis.reference?.toLowerCase().includes(searchQuery) ||
+                colis.client?.toLowerCase().includes(searchQuery) ||
+                colis.tel1?.includes(query) ||
+                colis.tel2?.includes(query) ||
+                colis.ville?.toLowerCase().includes(searchQuery) ||
+                colis.gouvernorat?.toLowerCase().includes(searchQuery) ||
+                colis.numero_colis?.toLowerCase().includes(searchQuery) ||
+                colis.code?.toLowerCase().includes(searchQuery) ||
+                colis.designation?.toLowerCase().includes(searchQuery)
+              );
+          }
+        });
+      }
+
+      // Apply date filter
+      if (startDate || endDate) {
+        filtered = filtered.filter(colis => {
+          if (!colis.date_creation) return false;
+          
+          try {
+            const colisDate = new Date(colis.date_creation);
+            if (isNaN(colisDate.getTime())) return false; // Invalid date
+            
+            // Extract date part only (YYYY-MM-DD) for comparison
+            const colisDateStr = colisDate.toISOString().split('T')[0];
+            
+            if (startDate && endDate) {
+              // Both dates provided - check if colis date is in range
+              return colisDateStr >= startDate && colisDateStr <= endDate;
+            } else if (startDate) {
+              // Only start date - check if colis date is >= start date
+              return colisDateStr >= startDate;
+            } else if (endDate) {
+              // Only end date - check if colis date is <= end date
+              return colisDateStr <= endDate;
+            }
+          } catch (e) {
+            console.error('Error parsing date:', colis.date_creation, e);
+            return false;
+          }
+          return true;
+        });
+      }
 
       setColisList(filtered);
       setCurrentPage(1);
@@ -210,11 +245,25 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
+      // Try multiple fields to find the identifier
+      // Priority: code > id > numero_colis > reference
+      const colisId = selectedColis.code || selectedColis.id || selectedColis.numero_colis || selectedColis.reference;
+      
+      if (!colisId || colisId.trim() === '') {
+        console.error('No identifier found for colis:', selectedColis);
+        setError('Impossible de trouver l\'identifiant du colis (code barre). Le colis doit avoir un code barre pour être modifié.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Updating colis with identifier:', colisId, 'from colis:', selectedColis);
+
       const response = await fetch('/api/colissimo/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, id: selectedColis.code }),
+        body: JSON.stringify({ ...data, id: colisId }),
       });
 
       const result = await response.json();
@@ -226,10 +275,13 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         await fetchColisList();
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError(result.error || 'Échec de la modification');
+        const errorMessage = result.error || 'Échec de la modification';
+        setError(errorMessage);
+        console.error('Update failed:', result);
       }
     } catch (err: any) {
-      setError(err.message || 'Échec de la modification');
+      const errorMessage = err.message || 'Échec de la modification';
+      setError(errorMessage);
       console.error('Error updating colis:', err);
     } finally {
       setLoading(false);

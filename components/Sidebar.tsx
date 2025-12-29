@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Package, Clock, Truck, CheckCircle, XCircle, Home, AlertCircle } from 'lucide-react';
+import { Package, Clock, Truck, CheckCircle, XCircle, Home, AlertCircle, Building } from 'lucide-react';
 
 interface SidebarProps {
   selectedStatus: string;
@@ -107,6 +107,15 @@ const statusConfig = [
     color: 'text-teal-600',
     bgColor: 'hover:bg-teal-50',
     activeBg: 'bg-teal-100'
+  },
+  {
+    key: 'Au Dépôt',
+    path: '/au-depot',
+    label: 'Au Dépôt',
+    icon: Building,
+    color: 'text-cyan-600',
+    bgColor: 'hover:bg-cyan-50',
+    activeBg: 'bg-cyan-100'
   },
 ];
 

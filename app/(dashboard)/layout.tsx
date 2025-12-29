@@ -32,6 +32,7 @@ export default function DashboardLayout({
     if (pathname === '/echange-recu') return 'Echange Reçu';
     if (pathname === '/anomalie') return 'Anomalie de Livraison';
     if (pathname === '/livre-paye') return 'Livré Payé';
+    if (pathname === '/au-depot') return 'Au Dépôt';
     return 'all';
   };
 
