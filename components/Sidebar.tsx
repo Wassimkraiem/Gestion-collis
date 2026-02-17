@@ -27,15 +27,7 @@ const statusConfig = [
     bgColor: 'hover:bg-yellow-50',
     activeBg: 'bg-yellow-100'
   },
-  {
-    key: 'A Enlever',
-    path: '/a-enlever',
-    label: 'À Enlever',
-    icon: AlertCircle,
-    color: 'text-orange-600',
-    bgColor: 'hover:bg-orange-50',
-    activeBg: 'bg-orange-100'
-  },
+
   {
     key: 'En Cours de Livraison',
     path: '/en-livraison',
@@ -45,15 +37,7 @@ const statusConfig = [
     bgColor: 'hover:bg-blue-50',
     activeBg: 'bg-blue-100'
   },
-  {
-    key: 'Livré',
-    path: '/livre',
-    label: 'Livrés',
-    icon: CheckCircle,
-    color: 'text-green-600',
-    bgColor: 'hover:bg-green-50',
-    activeBg: 'bg-green-100'
-  },
+
   {
     key: 'En transit',
     path: '/en-transit',
@@ -150,7 +134,7 @@ export default function Sidebar({ selectedStatus }: SidebarProps) {
           <p className="text-[11px] lg:text-sm text-gray-500">Par statut</p>
         </div>
         <span className="inline-flex md:hidden px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">
-          {Object.values(statusCounts).reduce((a, b) => a + b, 0) || 0} colis
+           colis
         </span>
       </div>
 
@@ -159,7 +143,7 @@ export default function Sidebar({ selectedStatus }: SidebarProps) {
         {statusConfig.map((status) => {
           const Icon = status.icon;
           const count = status.key === 'all'
-            ? Object.values(statusCounts).reduce((a, b) => a + b, 0)
+            ? 100
             : statusCounts[status.key] || 0;
           const isActive = selectedStatus === status.key;
 

@@ -384,19 +384,31 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 
       const result = await response.json();
 
+      // Log the complete API response
+      console.log('=== Validation API Response ===');
+      console.log('Full Response:', JSON.stringify(result, null, 2));
+      console.log('Success:', result.success);
+      console.log('PDF URL:', result.pdfUrl);
+      console.log('API Response:', result.apiResponse);
+      console.log('================================');
+
       if (result.success) {
         setSuccess(`${enAttenteCount} colis validés avec succès !`);
 
         // If there's a PDF link, open it
         if (result.pdfUrl) {
+          console.log('Opening PDF:', result.pdfUrl);
           setTimeout(() => {
             window.open(result.pdfUrl, '_blank');
-          }, 3000); // Wait 5 seconds
+          }, 3000); // Wait 3 seconds
+        } else {
+          console.warn('No PDF URL in response');
         }
 
         await fetchColisList();
         setTimeout(() => setSuccess(null), 3000);
       } else {
+        console.error('Validation failed:', result);
         setError(result.error || 'Échec de la validation en masse');
       }
     } catch (err: any) {

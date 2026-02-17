@@ -23,15 +23,12 @@ export default function DashboardLayout({
     if (pathname === '/' || pathname === '/all') return 'all';
     if (pathname === '/en-attente') return 'En Attente';
     if (pathname === '/en-livraison') return 'En Cours de Livraison';
-    if (pathname === '/livre') return 'Livré';
     if (pathname === '/en-transit') return 'En transit';
-    if (pathname === '/a-enlever') return 'A Enlever';
     if (pathname === '/annule') return 'Annulé';
     if (pathname === '/retour-depot') return 'Retour Dépôt';
     if (pathname === '/retour-expediteur') return 'Retour Expéditeur';
     if (pathname === '/echange-recu') return 'Echange Reçu';
     if (pathname === '/anomalie') return 'Anomalie de Livraison';
-    if (pathname === '/livre-paye') return 'Livré Payé';
     if (pathname === '/au-depot') return 'Au Dépôt';
     return 'all';
   };
