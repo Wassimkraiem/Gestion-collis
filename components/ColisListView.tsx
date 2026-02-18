@@ -136,6 +136,71 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
     setLoading(true);
     setError(null);
     try {
+      // If a query is provided, use server-side search to avoid loading all colis client-side
+      if (query.trim()) {
+        const response = await fetch(`/api/colissimo/search?q=${encodeURIComponent(query.trim())}`);
+        const result = await response.json();
+
+        if (!result.success) {
+          setError(result.error || 'Search failed');
+          setColisList([]);
+          return;
+        }
+
+        let serverResults: Colis[] = Array.isArray(result.data?.colis) ? result.data.colis : [];
+
+        // Apply search type filter on server results
+        const searchQuery = query.toLowerCase();
+        if (type !== 'all') {
+          serverResults = serverResults.filter(colis => {
+            switch (type) {
+              case 'reference':
+                return colis.reference?.toLowerCase().includes(searchQuery);
+              case 'client':
+                return colis.client?.toLowerCase().includes(searchQuery);
+              case 'tel':
+                return colis.tel1?.includes(query) || colis.tel2?.includes(query);
+              case 'numero':
+                return colis.numero_colis?.toLowerCase().includes(searchQuery) || colis.code?.toLowerCase().includes(searchQuery);
+              default:
+                return true;
+            }
+          });
+        }
+
+        // Apply status filter after search
+        if (statusFilter !== 'all') {
+          serverResults = serverResults.filter(colis => colis.etat === statusFilter);
+        }
+
+        // Apply date filter on server results
+        if (startDate || endDate) {
+          serverResults = serverResults.filter(colis => {
+            if (!colis.date_creation) return false;
+            try {
+              const colisDate = new Date(colis.date_creation);
+              if (isNaN(colisDate.getTime())) return false;
+              const colisDateStr = colisDate.toISOString().split('T')[0];
+              if (startDate && endDate) {
+                return colisDateStr >= startDate && colisDateStr <= endDate;
+              } else if (startDate) {
+                return colisDateStr >= startDate;
+              } else if (endDate) {
+                return colisDateStr <= endDate;
+              }
+            } catch (e) {
+              console.error('Error parsing date:', colis.date_creation, e);
+              return false;
+            }
+            return true;
+          });
+        }
+
+        setColisList(serverResults);
+        setCurrentPage(1);
+        return;
+      }
+
       let baseList = statusFilter === 'all'
         ? allColisList
         : allColisList.filter(colis => colis.etat === statusFilter);
@@ -480,9 +545,6 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
           <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">
             {statusFilter === 'all' ? 'Tous les colis' : `Colis: ${statusFilter}`}
           </h2>
-          <p className="text-xs lg:text-sm text-gray-600 mt-0.5 lg:mt-1">
-            {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`}
-          </p>
         </div>
         <div className="flex flex-wrap justify-end gap-1.5 lg:gap-2 xl:gap-3">
           <button
@@ -633,19 +695,6 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
         </div>
       )}
 
-      {/* Stats */}
-      {!loading && (
-        <div className="mt-6 card p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">
-                Affichage: {paginatedColisList.length} de {colisList.length} colis {statusFilter !== 'all' && `(${statusFilter})`} • Total dans le système: {totalColis} colis • Page {currentPage} sur {totalPaginationPages}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modals */}
       {colisToDelete && (
         <DeleteConfirmModal
@@ -687,4 +736,3 @@ export default function ColisListView({ statusFilter = 'all' }: ColisListViewPro
 function sleep(arg0: number) {
   throw new Error('Function not implemented.');
 }
-
