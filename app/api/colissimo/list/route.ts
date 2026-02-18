@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSOAPClient } from '@/lib/soap-client';
 
-const MAX_PAGES = 2;
-
 export async function GET(request: NextRequest) {
   try {
     const client = await getSOAPClient();
+    const searchParams = request.nextUrl.searchParams;
+    const maxPagesParam = searchParams.get('maxPages');
+    const maxPages = maxPagesParam
+      ? Math.max(parseInt(maxPagesParam, 10), 1)
+      : null;
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? Math.max(parseInt(limitParam, 10), 1) : 200;
 
     let allColis: any[] = [];
     let meta: any = {};
+    let pagesFetched = 0;
+    let totalPages = 1;
 
-    for (let page = 1; page <= MAX_PAGES; page++) {
+    for (let page = 1; page <= totalPages; page++) {
       const result = await client.ListeColisAsync({
         page: page.toString(),
       });
@@ -49,9 +56,14 @@ export async function GET(request: NextRequest) {
         nbColis: content.nbColis,
         nbPages: content.nbPages,
       };
+      pagesFetched += 1;
+      totalPages = Number(content.nbPages) || totalPages;
 
-      // Stop early if API has fewer pages
-      if (page >= Number(content.nbPages)) {
+      if (maxPages && page >= maxPages) {
+        break;
+      }
+
+      if (allColis.length >= limit) {
         break;
       }
     }
@@ -59,8 +71,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        colis: allColis,
-        pagesFetched: MAX_PAGES,
+        colis: allColis.slice(0, limit),
+        pagesFetched,
+        maxPages,
+        limit,
         totalReturned: allColis.length,
         ...meta,
       },
