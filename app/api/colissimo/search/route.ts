@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
         const numeroColis = String(item.numero_colis || '').trim();
         const tel1 = String(item.tel1 || '').trim();
         const tel2 = String(item.tel2 || '').trim();
+        const clientName = String(item.client || '').trim();
 
         if (isNumberQuery) {
           if (
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
             matches.push(item);
           }
         } else {
-          const haystack = `${reference} ${numeroColis}`.toLowerCase();
+          const haystack = `${reference} ${numeroColis} ${clientName}`.toLowerCase();
           if (haystack.includes(normalizedQuery.toLowerCase())) {
             matches.push(item);
           }

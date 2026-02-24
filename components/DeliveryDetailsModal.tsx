@@ -99,63 +99,82 @@ export default function DeliveryDetailsModal({ colis, onClose }: DeliveryDetails
         {/* Content */}
         {!loading && (
         <div className="space-y-6">
-          {/* HERO SECTION: Anomaly - Most Important for Anomaly Colis! */}
-          {(enrichedColis.etat === 'Anomalie de Livraison' && enrichedColis.dern_anomalie) ? (
-            <div className="bg-gradient-to-br from-rose-400 via-red-500 to-rose-600 rounded-2xl p-8 shadow-2xl border-4 border-red-300 animate-pulse-slow">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
-                  <AlertTriangle size={40} className="text-red-600" />
-                </div>
-                <h2 className="text-3xl font-extrabold text-white mb-2">⚠️ Anomalie de Livraison</h2>
-                <p className="text-red-100 text-lg">Raison du problème de livraison</p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-8 shadow-xl">
-                <p className="text-sm text-gray-500 mb-3 uppercase tracking-wide">⚠️ Cause de l'Anomalie</p>
-                <p className="font-black text-red-700 text-4xl">{enrichedColis.dern_anomalie}</p>
-              </div>
-            </div>
-          ) : (enrichedColis.livreur || enrichedColis.tel_livreur) ? (
-            /* HERO SECTION: Delivery Person Details */
-            <div className="bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 rounded-2xl p-8 shadow-2xl border-4 border-green-300 animate-pulse-slow">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
-                  <Truck size={40} className="text-green-600" />
-                </div>
-                <h2 className="text-3xl font-extrabold text-white mb-2">🚚 Livreur Assigné</h2>
-                <p className="text-green-100 text-lg">Contactez votre livreur directement</p>
-              </div>
-              
-              <div className="space-y-4">
-                {enrichedColis.livreur && (
-                  <div className="bg-white rounded-xl p-6 shadow-xl">
-                    <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">👤 Nom du Livreur</p>
-                    <p className="font-black text-gray-900 text-3xl">{enrichedColis.livreur}</p>
+          {(() => {
+            const isAnomaly = enrichedColis.etat === 'Anomalie de Livraison';
+            const hasDeliveryInfo = Boolean(enrichedColis.livreur || enrichedColis.tel_livreur || enrichedColis.agence_actuelle);
+
+            return (
+              <>
+                {hasDeliveryInfo && (
+                  <div className="bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 rounded-2xl p-8 shadow-2xl border-4 border-green-300 animate-pulse-slow">
+                    <div className="text-center mb-6">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                        <Truck size={40} className="text-green-600" />
+                      </div>
+                      <h2 className="text-3xl font-extrabold text-white mb-2">🚚 Livreur Assigné</h2>
+                      <p className="text-green-100 text-lg">Contactez votre livreur directement</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {enrichedColis.livreur && (
+                        <div className="bg-white rounded-xl p-6 shadow-xl">
+                          <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">👤 Nom du Livreur</p>
+                          <p className="font-black text-gray-900 text-3xl">{enrichedColis.livreur}</p>
+                        </div>
+                      )}
+                      {enrichedColis.tel_livreur && (
+                        <div className="bg-white rounded-xl p-6 shadow-xl">
+                          <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">📞 Téléphone</p>
+                          <p className="font-black text-green-700 text-4xl">{enrichedColis.tel_livreur}</p>
+                        </div>
+                      )}
+                      {enrichedColis.agence_actuelle && (
+                        <div className="bg-white/90 rounded-lg p-4">
+                          <p className="text-sm text-gray-600">📍 Agence</p>
+                          <p className="font-bold text-gray-900 text-xl">{enrichedColis.agence_actuelle}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-                {enrichedColis.tel_livreur && (
-                  <div className="bg-white rounded-xl p-6 shadow-xl">
-                    <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">📞 Téléphone</p>
-                    <p className="font-black text-green-700 text-4xl">{enrichedColis.tel_livreur}</p>
+
+                {isAnomaly && enrichedColis.dern_anomalie && (
+                  <div className="bg-gradient-to-br from-rose-400 via-red-500 to-rose-600 rounded-2xl p-8 shadow-2xl border-4 border-red-300">
+                    <div className="text-center mb-6">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                        <AlertTriangle size={40} className="text-red-600" />
+                      </div>
+                      <h2 className="text-3xl font-extrabold text-white mb-2">⚠️ Anomalie de Livraison</h2>
+                      <p className="text-red-100 text-lg">Raison du problème de livraison</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-8 shadow-xl">
+                      <p className="text-sm text-gray-500 mb-3 uppercase tracking-wide">⚠️ Cause de l'Anomalie</p>
+                      <p className="font-black text-red-700 text-4xl">{enrichedColis.dern_anomalie}</p>
+                    </div>
                   </div>
                 )}
-                {enrichedColis.agence_actuelle && (
-                  <div className="bg-white/90 rounded-lg p-4">
-                    <p className="text-sm text-gray-600">📍 Agence</p>
-                    <p className="font-bold text-gray-900 text-xl">{enrichedColis.agence_actuelle}</p>
+
+                {!hasDeliveryInfo && !isAnomaly && (
+                  <div className="flex items-center justify-center">
+                    <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold flex items-center gap-2">
+                      <Truck size={16} />
+                      {enrichedColis.etat || 'En Cours de Livraison'}
+                    </span>
                   </div>
                 )}
-              </div>
-            </div>
-          ) : (
-            /* Status Badge (only shown if no livreur info and no anomaly) */
-            <div className="flex items-center justify-center">
-              <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold flex items-center gap-2">
-                <Truck size={16} />
-                {enrichedColis.etat || 'En Cours de Livraison'}
-              </span>
-            </div>
-          )}
+
+                {!hasDeliveryInfo && isAnomaly && !enrichedColis.dern_anomalie && (
+                  <div className="flex items-center justify-center">
+                    <span className="px-4 py-2 bg-gradient-to-r from-rose-100 to-rose-200 text-rose-800 rounded-full text-sm font-semibold flex items-center gap-2">
+                      <AlertTriangle size={16} />
+                      {enrichedColis.etat}
+                    </span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Destination - Client Information */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-200">
